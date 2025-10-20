@@ -6,16 +6,16 @@ import {
 } from 'firebase/auth'
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
-import { auth, db } from '../src/firebase/config'
+import { auth, db } from '../src/firebase/config' // Ensure correct import path
 
 export const useAuth = () => {
-	// 'user' is the Firebase Auth user object.
-	// 'profile' stores the role and other data from Firestore.
+	// Firebase Auth user object
 	const [user, setUser] = useState(null)
+	// User profile from Firestore (role, email, displayName)
 	const [profile, setProfile] = useState(null)
 	const [loading, setLoading] = useState(true)
 
-	// Helper function to fetch user role from Firestore
+	// Helper function to fetch user profile (role) from Firestore
 	const fetchUserProfile = async uid => {
 		if (!uid) {
 			setProfile(null)
@@ -25,7 +25,7 @@ export const useAuth = () => {
 			const userRef = doc(db, 'users', uid)
 			const docSnap = await getDoc(userRef)
 			if (docSnap.exists()) {
-				setProfile(docSnap.data()) // Sets { role: 'worker', email: '...', etc. }
+				setProfile(docSnap.data())
 			} else {
 				console.warn('User profile not found in Firestore.')
 				setProfile(null)
@@ -36,21 +36,23 @@ export const useAuth = () => {
 		}
 	}
 
-	// Auth state change listener
+	// Auth state change listener: runs on app load, login, and logout
 	useEffect(() => {
 		const unsubscribe = onAuthStateChanged(auth, async authUser => {
 			setUser(authUser)
 			if (authUser) {
+				// If logged in, fetch the role immediately
 				await fetchUserProfile(authUser.uid)
 			} else {
 				setProfile(null) // Clear profile on logout
 			}
 			setLoading(false)
 		})
-		return () => unsubscribe()
+		return () => unsubscribe() // Cleanup
 	}, [])
 
-	const register = async (email, password, role) => {
+	// --- REGISTRATION LOGIC ---
+	const register = async (email, password, role, displayName = 'User') => {
 		const userCredential = await createUserWithEmailAndPassword(
 			auth,
 			email,
@@ -58,24 +60,26 @@ export const useAuth = () => {
 		)
 		const authUser = userCredential.user
 
-		// CRITICAL: Set profile data with UID as Document ID
+		// Create profile in Firestore with role and UID as Document ID
 		const userDocRef = doc(db, 'users', authUser.uid)
 		await setDoc(userDocRef, {
 			email: authUser.email,
 			role: role, // 'worker' or 'employer'
-			displayName: '', // Default display name
+			displayName: displayName,
 			createdAt: new Date(),
 		})
 
-		// Update the local profile state immediately
-		setProfile({ email: authUser.email, role: role, displayName: '' })
+		// Update local state
+		setProfile({ email: authUser.email, role: role, displayName: displayName })
 	}
 
+	// --- LOGIN LOGIC ---
 	const login = async (email, password) => {
-		// Auth service handles login; useEffect will automatically fetch the profile
+		// Firebase Auth handles login; useEffect will fetch the profile automatically
 		return signInWithEmailAndPassword(auth, email, password)
 	}
 
+	// --- LOGOUT LOGIC ---
 	const logout = () => {
 		return signOut(auth)
 	}
@@ -87,6 +91,9 @@ export const useAuth = () => {
 		register,
 		login,
 		logout,
+		// Simplified role checks
+		isAuthenticated: !!user,
 		isEmployer: profile?.role === 'employer',
+		isWorker: profile?.role === 'worker',
 	}
 }

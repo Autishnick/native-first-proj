@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
-import { getAnalytics } from 'firebase/analytics'
 import { initializeApp } from 'firebase/app'
+import { getAuth } from 'firebase/auth'
+import { getFirestore } from 'firebase/firestore'
 const firebaseConfig = {
 	apiKey: 'AIzaSyCK_6Lz4lPmp1HpZr5NyGKX8jSd6kkqE4w',
 	authDomain: 'reactnativeapp-9ee0f.firebaseapp.com',
@@ -11,6 +12,6 @@ const firebaseConfig = {
 	measurementId: 'G-3T7E2BTEHX',
 }
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig)
-const analytics = getAnalytics(app)
+export const auth = getAuth(app)
+export const db = getFirestore(app)
