@@ -1,4 +1,4 @@
-import { Link, router } from 'expo-router'
+import { router } from 'expo-router'
 import { useState } from 'react'
 import {
 	ActivityIndicator,
@@ -14,43 +14,53 @@ import { useAuth } from '../../hooks/useAuth'
 export default function RegisterScreen() {
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
-	const [confPassword, setConfPassword] = useState('') // New state for confirmation
+	const [confPassword, setConfPassword] = useState('')
 	const [displayName, setDisplayName] = useState('')
-	const [role, setRole] = useState('worker') // Default role
+	const [role, setRole] = useState('worker')
 	const [isLoading, setIsLoading] = useState(false)
 
 	const { register } = useAuth()
 
 	const handleRegister = async () => {
+		console.log('=== REGISTRATION STARTED ===')
+		console.log('Email:', email)
+		console.log('Display Name:', displayName)
+		console.log('Role:', role)
+
 		// 1. Check if all fields are filled
 		if (!email || !password || !confPassword || !displayName) {
+			console.log('❌ Validation failed: Missing fields')
 			Alert.alert('Error', 'Please fill in all fields.')
 			return
 		}
 
 		// 2. CRITICAL CHECK: Password confirmation
 		if (password !== confPassword) {
+			console.log('❌ Validation failed: Passwords do not match')
 			Alert.alert('Error', 'Passwords do not match. Please try again.')
 			return
 		}
 
+		console.log('✅ Validation passed, calling register...')
 		setIsLoading(true)
 		try {
-			// 3. Call register with email, password, role, and display name
-			// Note: We only pass the main 'password', not the confirmation field
 			await register(email, password, role, displayName)
+			console.log('✅ Registration successful!')
 
-			// Success: Redirect to the main app screen (handled by root layout)
+			// Автоматично переходимо на головний екран без Alert
 			router.replace('/(main)')
 		} catch (error) {
-			console.error('Registration failed:', error)
-			// Display a user-friendly error message
+			console.error('❌ Registration failed:', error)
+			console.error('Error code:', error.code)
+			console.error('Error message:', error.message)
+
 			Alert.alert(
 				'Registration Failed',
 				error.message || 'An unknown error occurred.'
 			)
 		} finally {
 			setIsLoading(false)
+			console.log('=== REGISTRATION ENDED ===')
 		}
 	}
 
@@ -80,7 +90,6 @@ export default function RegisterScreen() {
 				secureTextEntry
 			/>
 
-			{/* NEW FIELD: Confirm Password */}
 			<TextInput
 				style={styles.input}
 				placeholder='Confirm Password'
@@ -89,7 +98,6 @@ export default function RegisterScreen() {
 				secureTextEntry
 			/>
 
-			{/* Role Selection UI */}
 			<Text style={styles.roleLabel}>Select Your Role:</Text>
 			<View style={styles.roleSelector}>
 				<RoleButton
@@ -97,14 +105,14 @@ export default function RegisterScreen() {
 					roleValue='worker'
 					currentRole={role}
 					onSelect={setRole}
-					color='green'
+					color='#28A745'
 				/>
 				<RoleButton
 					title='Employer (Customer)'
 					roleValue='employer'
 					currentRole={role}
 					onSelect={setRole}
-					color='blue'
+					color='#007AFF'
 				/>
 			</View>
 
@@ -125,20 +133,23 @@ export default function RegisterScreen() {
 
 			<View style={styles.linkContainer}>
 				<Text>Already have an account? </Text>
-				<Link href='/login' style={styles.link}>
-					Login
-				</Link>
+				<TouchableOpacity onPress={() => router.push('/login')}>
+					<Text style={styles.link}>Login</Text>
+				</TouchableOpacity>
 			</View>
 		</View>
 	)
 }
 
-// Simple component for role selection buttons
 const RoleButton = ({ title, roleValue, currentRole, onSelect, color }) => (
 	<TouchableOpacity
 		style={[
 			styles.roleButton,
-			{ borderColor: currentRole === roleValue ? color : '#ccc' },
+			{
+				borderColor: currentRole === roleValue ? color : '#ccc',
+				backgroundColor:
+					currentRole === roleValue ? `${color}15` : 'transparent',
+			},
 		]}
 		onPress={() => onSelect(roleValue)}
 	>

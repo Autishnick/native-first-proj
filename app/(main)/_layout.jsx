@@ -52,7 +52,7 @@ export default function TabLayout() {
 				options={{
 					title: 'Account',
 					tabBarIcon: ({ color }) => (
-						<MaterialIcons name='done-all' size={24} color={color} />
+						<MaterialIcons name='person' size={24} color={color} />
 					),
 					headerTitle: '',
 				}}

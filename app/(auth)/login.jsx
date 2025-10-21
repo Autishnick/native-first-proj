@@ -1,4 +1,4 @@
-import { Link, router } from 'expo-router'
+import { router } from 'expo-router'
 import { useState } from 'react'
 import {
 	ActivityIndicator,
@@ -19,24 +19,33 @@ export default function LoginScreen() {
 	const { login } = useAuth()
 
 	const handleLogin = async () => {
+		console.log('=== LOGIN STARTED ===')
+		console.log('Email:', email)
+
 		if (!email || !password) {
+			console.log('❌ Validation failed: Missing fields')
 			Alert.alert('Error', 'Please enter email and password.')
 			return
 		}
 
+		console.log('✅ Validation passed, calling login...')
 		setIsLoading(true)
 		try {
-			// 1. Call the login function from useAuth
+			// Call the login function from useAuth
 			await login(email, password)
+			console.log('✅ Login successful!')
 
-			// Success: Redirect to the main app screen (handled by root layout after auth state change)
+			// Автоматично переходимо на головний екран
 			router.replace('/(main)')
 		} catch (error) {
-			console.error('Login failed:', error)
+			console.error('❌ Login failed:', error)
+			console.error('Error message:', error.message)
+
 			// Display a user-friendly error message
 			Alert.alert('Login Failed', error.message || 'Invalid credentials.')
 		} finally {
 			setIsLoading(false)
+			console.log('=== LOGIN ENDED ===')
 		}
 	}
 
@@ -74,9 +83,9 @@ export default function LoginScreen() {
 
 			<View style={styles.linkContainer}>
 				<Text>Don't have an account? </Text>
-				<Link href='/register' style={styles.link}>
-					Register
-				</Link>
+				<TouchableOpacity onPress={() => router.push('/register')}>
+					<Text style={styles.link}>Register</Text>
+				</TouchableOpacity>
 			</View>
 		</View>
 	)
@@ -106,7 +115,7 @@ const styles = StyleSheet.create({
 		backgroundColor: '#f9f9f9',
 	},
 	loginButton: {
-		backgroundColor: '#007AFF', // Blue color for primary action
+		backgroundColor: '#007AFF',
 		padding: 15,
 		borderRadius: 8,
 		alignItems: 'center',
@@ -123,7 +132,7 @@ const styles = StyleSheet.create({
 		marginTop: 20,
 	},
 	link: {
-		color: 'orange', // Orange to match register button color in the other file
+		color: 'orange',
 		fontWeight: 'bold',
 	},
 })

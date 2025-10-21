@@ -1,9 +1,9 @@
-import { Text, View } from 'react-native'
-
+import { View } from 'react-native'
+import AppHeader from '../../components/modules/Header'
 const browse = () => {
 	return (
 		<View>
-			<Text>browse</Text>
+			<AppHeader />
 		</View>
 	)
 }
