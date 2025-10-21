@@ -9,6 +9,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native'
+import LoginHeader from '../../components/modules/LoginHeader'
 import { useAuth } from '../../hooks/useAuth'
 
 export default function RegisterScreen() {
@@ -65,79 +66,83 @@ export default function RegisterScreen() {
 	}
 
 	return (
-		<View style={styles.container}>
-			<Text style={styles.header}>Create New Account</Text>
+		<>
+			<LoginHeader />
 
-			<TextInput
-				style={styles.input}
-				placeholder='Display Name'
-				value={displayName}
-				onChangeText={setDisplayName}
-			/>
-			<TextInput
-				style={styles.input}
-				placeholder='Email'
-				value={email}
-				onChangeText={setEmail}
-				keyboardType='email-address'
-				autoCapitalize='none'
-			/>
-			<TextInput
-				style={styles.input}
-				placeholder='Password'
-				value={password}
-				onChangeText={setPassword}
-				secureTextEntry
-			/>
+			<View style={styles.container}>
+				<Text style={styles.header}>Create New Account</Text>
 
-			<TextInput
-				style={styles.input}
-				placeholder='Confirm Password'
-				value={confPassword}
-				onChangeText={setConfPassword}
-				secureTextEntry
-			/>
-
-			<Text style={styles.roleLabel}>Select Your Role:</Text>
-			<View style={styles.roleSelector}>
-				<RoleButton
-					title='Worker (Performer)'
-					roleValue='worker'
-					currentRole={role}
-					onSelect={setRole}
-					color='#28A745'
+				<TextInput
+					style={styles.input}
+					placeholder='Display Name'
+					value={displayName}
+					onChangeText={setDisplayName}
 				/>
-				<RoleButton
-					title='Employer (Customer)'
-					roleValue='employer'
-					currentRole={role}
-					onSelect={setRole}
-					color='#007AFF'
+				<TextInput
+					style={styles.input}
+					placeholder='Email'
+					value={email}
+					onChangeText={setEmail}
+					keyboardType='email-address'
+					autoCapitalize='none'
 				/>
+				<TextInput
+					style={styles.input}
+					placeholder='Password'
+					value={password}
+					onChangeText={setPassword}
+					secureTextEntry
+				/>
+
+				<TextInput
+					style={styles.input}
+					placeholder='Confirm Password'
+					value={confPassword}
+					onChangeText={setConfPassword}
+					secureTextEntry
+				/>
+
+				<Text style={styles.roleLabel}>Select Your Role:</Text>
+				<View style={styles.roleSelector}>
+					<RoleButton
+						title='Worker (Performer)'
+						roleValue='worker'
+						currentRole={role}
+						onSelect={setRole}
+						color='#28A745'
+					/>
+					<RoleButton
+						title='Employer (Customer)'
+						roleValue='employer'
+						currentRole={role}
+						onSelect={setRole}
+						color='#007AFF'
+					/>
+				</View>
+
+				{isLoading ? (
+					<ActivityIndicator
+						size='large'
+						color='#007AFF'
+						style={{ marginTop: 20 }}
+					/>
+				) : (
+					<TouchableOpacity
+						style={styles.registerButton}
+						onPress={handleRegister}
+					>
+						<Text style={styles.registerButtonText}>Register</Text>
+					</TouchableOpacity>
+				)}
+
+				<View style={styles.linkContainer}>
+					<Text>Already have an account? </Text>
+					<TouchableOpacity onPress={() => router.push('/login')}>
+						<Text style={styles.link}>Login</Text>
+					</TouchableOpacity>
+				</View>
 			</View>
-
-			{isLoading ? (
-				<ActivityIndicator
-					size='large'
-					color='#007AFF'
-					style={{ marginTop: 20 }}
-				/>
-			) : (
-				<TouchableOpacity
-					style={styles.registerButton}
-					onPress={handleRegister}
-				>
-					<Text style={styles.registerButtonText}>Register</Text>
-				</TouchableOpacity>
-			)}
-
-			<View style={styles.linkContainer}>
-				<Text>Already have an account? </Text>
-				<TouchableOpacity onPress={() => router.push('/login')}>
-					<Text style={styles.link}>Login</Text>
-				</TouchableOpacity>
-			</View>
-		</View>
+		</>
 	)
 }
 

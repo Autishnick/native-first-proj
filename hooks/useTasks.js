@@ -1,6 +1,15 @@
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'
+import {
+	addDoc,
+	collection,
+	doc,
+	onSnapshot,
+	orderBy,
+	query,
+	Timestamp,
+	updateDoc,
+} from 'firebase/firestore'
 import { useEffect, useState } from 'react'
-import { db } from '../src/firebase/config'
+import { auth, db } from '../src/firebase/config' // Переконайтеся, що шлях правильний
 
 export function useTasks() {
 	const [tasks, setTasks] = useState([])
@@ -8,41 +17,75 @@ export function useTasks() {
 	const [error, setError] = useState(null)
 
 	useEffect(() => {
-		try {
-			const q = query(collection(db, 'tasks'), orderBy('dueDate', 'asc'))
-			const unsubscribe = onSnapshot(
-				q,
-				snapshot => {
-					const tasksData = snapshot.docs.map(doc => {
-						const data = doc.data()
-						return {
-							id: doc.id,
-							title: data.title || 'Без назви',
-							address: data.address || '',
-							createdBy: data.createdBy || 'Невідомо',
-							description: data.description || '',
-							location: data.location || '',
-							payment: data.payment || 0,
-							dueDate: data.dueDate || { seconds: Date.now() / 1000 },
-						}
-					})
-					setTasks(tasksData)
-					setLoading(false)
-				},
-				err => {
-					console.error('Error fetching tasks:', err)
-					setError(err)
-					setLoading(false)
-				}
-			)
+		// Створюємо запит до колекції 'tasks', сортуючи за датою виконання
+		const q = query(collection(db, 'tasks'), orderBy('dueDate', 'asc'))
 
-			return () => unsubscribe()
-		} catch (err) {
-			console.error('useTasks hook error:', err)
-			setError(err)
-			setLoading(false)
-		}
+		// onSnapshot слухає зміни в реальному часі
+		const unsubscribe = onSnapshot(
+			q,
+			snapshot => {
+				const tasksData = snapshot.docs.map(doc => {
+					const data = doc.data()
+					return {
+						id: doc.id,
+						// Надаємо значення за замовчуванням для кожного поля, щоб уникнути помилок
+						title: data.title || 'Без назви',
+						description: data.description || '',
+						category: data.category || 'General',
+						payment: data.payment || 0,
+						locationName: data.locationName || 'Не вказано',
+						address: data.address || '',
+						status: data.status || 'available',
+						createdBy: data.createdBy || null,
+						assignedTo: data.assignedTo || null,
+						// createdAt та dueDate є об'єктами Timestamp з Firebase
+						createdAt: data.createdAt || Timestamp.now(),
+						dueDate: data.dueDate || Timestamp.now(),
+					}
+				})
+				setTasks(tasksData)
+				setLoading(false)
+			},
+			err => {
+				console.error('Error fetching tasks:', err)
+				setError(err)
+				setLoading(false)
+			}
+		)
+
+		// Відписуємося від слухача при демонтажі компонента
+		return () => unsubscribe()
 	}, [])
+	const createTask = async taskData => {
+		const currentUserId = auth.currentUser?.uid
+		if (!currentUserId) throw new Error('User is not authenticated.')
 
-	return { tasks, loading, error }
+		await addDoc(collection(db, 'tasks'), {
+			...taskData, // title, description, payment, etc.
+			createdBy: currentUserId,
+			status: 'available',
+			assignedTo: null,
+			createdAt: Timestamp.now(), // Використовуємо Timestamp з Firebase
+		})
+	}
+
+	const takeTask = async taskId => {
+		const currentUserId = auth.currentUser?.uid
+		if (!currentUserId) throw new Error('User is not authenticated.')
+
+		const taskRef = doc(db, 'tasks', taskId)
+		await updateDoc(taskRef, {
+			status: 'in_progress',
+			assignedTo: currentUserId,
+		})
+	}
+
+	const completeTask = async taskId => {
+		const taskRef = doc(db, 'tasks', taskId)
+		await updateDoc(taskRef, {
+			status: 'completed',
+		})
+	}
+
+	return { tasks, loading, error, createTask, takeTask, completeTask }
 }

@@ -9,6 +9,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native'
+import LoginHeader from '../../components/modules/LoginHeader'
 import { useAuth } from '../../hooks/useAuth'
 
 export default function LoginScreen() {
@@ -50,44 +51,47 @@ export default function LoginScreen() {
 	}
 
 	return (
-		<View style={styles.container}>
-			<Text style={styles.header}>Welcome Back</Text>
+		<>
+			<LoginHeader />
+			<View style={styles.container}>
+				<Text style={styles.header}>Welcome Back</Text>
 
-			<TextInput
-				style={styles.input}
-				placeholder='Email'
-				value={email}
-				onChangeText={setEmail}
-				keyboardType='email-address'
-				autoCapitalize='none'
-			/>
-			<TextInput
-				style={styles.input}
-				placeholder='Password'
-				value={password}
-				onChangeText={setPassword}
-				secureTextEntry
-			/>
-
-			{isLoading ? (
-				<ActivityIndicator
-					size='large'
-					color='#007AFF'
-					style={{ marginTop: 20 }}
+				<TextInput
+					style={styles.input}
+					placeholder='Email'
+					value={email}
+					onChangeText={setEmail}
+					keyboardType='email-address'
+					autoCapitalize='none'
 				/>
-			) : (
-				<TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-					<Text style={styles.loginButtonText}>Log In</Text>
-				</TouchableOpacity>
-			)}
+				<TextInput
+					style={styles.input}
+					placeholder='Password'
+					value={password}
+					onChangeText={setPassword}
+					secureTextEntry
+				/>
 
-			<View style={styles.linkContainer}>
-				<Text>Don't have an account? </Text>
-				<TouchableOpacity onPress={() => router.push('/register')}>
-					<Text style={styles.link}>Register</Text>
-				</TouchableOpacity>
+				{isLoading ? (
+					<ActivityIndicator
+						size='large'
+						color='#007AFF'
+						style={{ marginTop: 20 }}
+					/>
+				) : (
+					<TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+						<Text style={styles.loginButtonText}>Log In</Text>
+					</TouchableOpacity>
+				)}
+
+				<View style={styles.linkContainer}>
+					<Text>Don't have an account? </Text>
+					<TouchableOpacity onPress={() => router.push('/register')}>
+						<Text style={styles.link}>Register</Text>
+					</TouchableOpacity>
+				</View>
 			</View>
-		</View>
+		</>
 	)
 }
 
