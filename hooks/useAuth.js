@@ -1,25 +1,24 @@
 import {
 	createUserWithEmailAndPassword,
+	EmailAuthProvider,
 	onAuthStateChanged,
+	reauthenticateWithCredential,
 	signInWithEmailAndPassword,
-	signOut, // --- NEW IMPORT ---
+	signOut,
 	updatePassword,
-	updateProfile, // --- NEW IMPORT ---
+	updateProfile,
 } from 'firebase/auth'
-import {
-	doc,
-	getDoc,
-	setDoc,
-	updateDoc, // --- NEW IMPORT ---
-} from 'firebase/firestore'
+
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
-import { auth, db } from '../src/firebase/config' // Перевірте шлях!
+import { auth, db } from '../src/firebase/config' // ⚠️ перевір шлях
 
 export const useAuth = () => {
 	const [user, setUser] = useState(null)
 	const [profile, setProfile] = useState(null)
 	const [loading, setLoading] = useState(true)
 
+	// --- Завантаження профілю користувача з Firestore ---
 	const fetchUserProfile = async uid => {
 		console.log('📖 Fetching profile for UID:', uid)
 		if (!uid) {
@@ -42,6 +41,7 @@ export const useAuth = () => {
 		}
 	}
 
+	// --- Слухач змін авторизації ---
 	useEffect(() => {
 		console.log('🔄 Setting up auth listener...')
 		const unsubscribe = onAuthStateChanged(auth, async authUser => {
@@ -57,48 +57,29 @@ export const useAuth = () => {
 		return () => unsubscribe()
 	}, [])
 
+	// --- Реєстрація ---
 	const register = async (email, password, role, displayName = 'User') => {
-		console.log('🚀 Starting registration process...')
-		console.log('  Email:', email)
-		console.log('  Role:', role)
-		console.log('  Display Name:', displayName)
-
 		try {
-			// 1. Create user in Firebase Authentication
-			console.log('  Step 1: Creating auth user...')
+			console.log('🚀 Registering:', email)
 			const userCredential = await createUserWithEmailAndPassword(
 				auth,
 				email,
 				password
 			)
 			const authUser = userCredential.user
-			console.log('  ✅ Auth user created:', authUser.uid)
-
-			// 2. Create profile in Firestore
-			console.log('  Step 2: Creating Firestore profile...')
 			const userDocRef = doc(db, 'users', authUser.uid)
 			const profileData = {
 				uid: authUser.uid,
 				email: authUser.email,
-				role: role,
-				displayName: displayName,
+				role,
+				displayName,
 				createdAt: new Date().toISOString(),
 			}
-			console.log('  Profile data:', profileData)
-
 			await setDoc(userDocRef, profileData)
-			console.log('  ✅ Firestore profile created!')
-
-			// 3. Update local state
 			setProfile(profileData)
-			console.log('  ✅ Local state updated!')
-
 			return authUser
 		} catch (error) {
 			console.error('❌ Registration error:', error)
-			console.error('  Error code:', error.code)
-			console.error('  Error message:', error.message)
-
 			if (error.code === 'auth/email-already-in-use') {
 				throw new Error('This email is already registered.')
 			} else if (error.code === 'auth/invalid-email') {
@@ -111,6 +92,7 @@ export const useAuth = () => {
 		}
 	}
 
+	// --- Вхід ---
 	const login = async (email, password) => {
 		console.log('🔑 Attempting login:', email)
 		try {
@@ -137,6 +119,7 @@ export const useAuth = () => {
 		}
 	}
 
+	// --- Вихід ---
 	const logout = async () => {
 		console.log('👋 Logging out...')
 		try {
@@ -150,51 +133,57 @@ export const useAuth = () => {
 		}
 	}
 
-	// --- NEW FUNCTION: To update user's profile data ---
+	// --- Оновлення профілю ---
 	const updateUserProfile = async newProfileData => {
 		if (!user) throw new Error('You must be logged in to update your profile.')
 
 		console.log('🔄 Updating profile with data:', newProfileData)
 		try {
-			// 1. Update the Firestore document
 			const userRef = doc(db, 'users', user.uid)
 			await updateDoc(userRef, newProfileData)
-			console.log('✅ Firestore document updated.')
-
-			// 2. If displayName is being changed, update the Auth profile too
 			if (newProfileData.displayName) {
 				await updateProfile(auth.currentUser, {
 					displayName: newProfileData.displayName,
 				})
-				console.log('✅ Firebase Auth profile updated.')
 			}
-
-			// 3. Update local state to reflect changes immediately
-			setProfile(prevProfile => ({ ...prevProfile, ...newProfileData }))
-			console.log('✅ Local profile state updated.')
+			setProfile(prev => ({ ...prev, ...newProfileData }))
+			console.log('✅ Profile updated successfully.')
 		} catch (error) {
 			console.error('❌ Error updating profile:', error)
 			throw new Error('Failed to update profile. Please try again.')
 		}
 	}
 
-	// --- NEW FUNCTION: To change the user's password ---
-	const changeUserPassword = async newPassword => {
+	// --- Зміна пароля з перевіркою поточного ---
+	const changeUserPassword = async (currentPassword, newPassword) => {
 		if (!auth.currentUser) throw new Error('No authenticated user found.')
 
 		console.log('🔒 Attempting to change password...')
 		try {
+			// 1️⃣ Re-authenticate user
+			const credential = EmailAuthProvider.credential(
+				auth.currentUser.email,
+				currentPassword
+			)
+			await reauthenticateWithCredential(auth.currentUser, credential)
+			console.log('✅ Re-authentication successful.')
+
+			// 2️⃣ Update password
 			await updatePassword(auth.currentUser, newPassword)
 			console.log('✅ Password updated successfully.')
+			return true
 		} catch (error) {
 			console.error('❌ Error changing password:', error)
-			// This error often means the user needs to re-authenticate
-			if (error.code === 'auth/requires-recent-login') {
+			if (error.code === 'auth/wrong-password') {
+				throw new Error('The current password is incorrect.')
+			} else if (error.code === 'auth/weak-password') {
+				throw new Error('New password must be at least 6 characters long.')
+			} else if (error.code === 'auth/requires-recent-login') {
 				throw new Error(
-					'This is a sensitive action. Please log out and log back in before changing your password.'
+					'Please log out and log back in before changing your password.'
 				)
 			}
-			throw new Error('Failed to change password.')
+			throw new Error('Failed to change password. Please try again.')
 		}
 	}
 
@@ -205,8 +194,8 @@ export const useAuth = () => {
 		register,
 		login,
 		logout,
-		updateUserProfile, // --- ADDED TO RETURN ---
-		changeUserPassword, // --- ADDED TO RETURN ---
+		updateUserProfile,
+		changeUserPassword,
 		isAuthenticated: !!user,
 		isEmployer: profile?.role === 'employer',
 		isWorker: profile?.role === 'worker',
