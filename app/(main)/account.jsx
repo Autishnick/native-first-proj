@@ -10,7 +10,6 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native'
-import AppHeader from '../../components/modules/Header'
 import { useAuth } from '../../hooks/useAuth'
 
 const InfoRow = ({ label, value, isEditing, onChangeText, isLast }) => (
@@ -140,7 +139,6 @@ export default function AccountScreen() {
 	if (!user) {
 		return (
 			<View style={[styles.mainContainer, styles.centered, { padding: 25 }]}>
-				<AppHeader />
 				<Text style={styles.title}>My Account</Text>
 				<Text style={styles.subtitle}>
 					You need to login to view your account details
@@ -163,7 +161,6 @@ export default function AccountScreen() {
 
 	return (
 		<View style={styles.mainContainer}>
-			<AppHeader />
 			<ScrollView style={styles.scrollContainer}>
 				<View style={styles.section}>
 					<View style={styles.sectionHeader}>

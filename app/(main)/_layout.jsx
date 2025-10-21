@@ -1,60 +1,72 @@
-import { MaterialIcons } from '@expo/vector-icons' // Example of using icons
 import { Tabs } from 'expo-router'
-import React from 'react'
+import AppHeader from '../../components/modules/Header'
 
-export default function TabLayout() {
+import { Ionicons } from '@expo/vector-icons'
+
+export default function MainTabLayout() {
 	return (
-		<Tabs screenOptions={{ tabBarActiveTintColor: 'blue' }}>
+		<Tabs
+			screenOptions={{
+				header: () => <AppHeader />,
+				tabBarActiveTintColor: '#2ECC71', // Колір активної іконки
+				tabBarInactiveTintColor: 'gray',
+				tabBarStyle: {
+					backgroundColor: '#0B1A2A', // Колір фону панелі вкладок
+					borderTopColor: '#1C3B5A',
+				},
+			}}
+		>
 			<Tabs.Screen
 				name='index'
 				options={{
-					title: 'Get it done',
-					tabBarIcon: ({ color }) => (
-						<MaterialIcons name='done' size={24} color={color} />
+					title: 'Get it Done',
+					tabBarIcon: ({ color, size }) => (
+						<Ionicons
+							name='checkmark-circle-outline'
+							size={size}
+							color={color}
+						/>
 					),
-					headerTitle: '',
 				}}
 			/>
-
 			<Tabs.Screen
 				name='browse'
 				options={{
 					title: 'Browse',
-					tabBarIcon: ({ color }) => (
-						<MaterialIcons name='search' size={24} color={color} />
+					tabBarIcon: ({ color, size }) => (
+						<Ionicons name='search-outline' size={size} color={color} />
 					),
-					headerTitle: '',
 				}}
 			/>
-
 			<Tabs.Screen
 				name='myTasks'
 				options={{
-					title: 'My tasks',
-					tabBarIcon: ({ color }) => (
-						<MaterialIcons name='task' size={24} color={color} />
+					title: 'My Tasks',
+					tabBarIcon: ({ color, size }) => (
+						<Ionicons name='person-outline' size={size} color={color} />
 					),
-					headerTitle: '',
 				}}
 			/>
 			<Tabs.Screen
 				name='messages'
 				options={{
 					title: 'Messages',
-					tabBarIcon: ({ color }) => (
-						<MaterialIcons name='message' size={24} color={color} />
+					tabBarIcon: ({ color, size }) => (
+						<Ionicons
+							name='chatbubble-ellipses-outline'
+							size={size}
+							color={color}
+						/>
 					),
-					headerTitle: '',
 				}}
 			/>
 			<Tabs.Screen
 				name='account'
 				options={{
 					title: 'Account',
-					tabBarIcon: ({ color }) => (
-						<MaterialIcons name='person' size={24} color={color} />
+					tabBarIcon: ({ color, size }) => (
+						<Ionicons name='cog-outline' size={size} color={color} />
 					),
-					headerTitle: '',
 				}}
 			/>
 		</Tabs>

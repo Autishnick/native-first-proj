@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+
 import { useAuth } from '../../hooks/useAuth'
 
 export default function AppHeader() {
@@ -8,10 +9,19 @@ export default function AppHeader() {
 	const { profile, logout } = useAuth()
 	const [confirmVisible, setConfirmVisible] = useState(false)
 
+	const navigateLogin = () => {
+		router.replace('/login')
+	}
+
+	const navigateRegister = () => {
+		router.replace('/register')
+	}
+
 	const handleLogoutConfirm = async () => {
 		try {
 			await logout()
 			setConfirmVisible(false)
+			// Redirect to home page or a public page after logout
 			router.replace('/')
 		} catch (error) {
 			console.error('❌ Logout failed:', error)
@@ -28,7 +38,7 @@ export default function AppHeader() {
 		<View style={styles.container}>
 			<Text style={styles.logo}>LOGO</Text>
 
-			{profile && (
+			{profile ? (
 				<>
 					<View style={styles.userInfo}>
 						<Text style={styles.userName}>
@@ -45,9 +55,25 @@ export default function AppHeader() {
 						<Text style={styles.logoutButtonText}>Logout</Text>
 					</TouchableOpacity>
 				</>
+			) : (
+				<View style={styles.authButtonsContainer}>
+					<TouchableOpacity
+						style={styles.authButton}
+						onPress={navigateLogin}
+						activeOpacity={0.7}
+					>
+						<Text style={styles.authButtonText}>Log In</Text>
+					</TouchableOpacity>
+					<TouchableOpacity
+						style={styles.authButton}
+						onPress={navigateRegister}
+						activeOpacity={0.7}
+					>
+						<Text style={styles.authButtonText}>Sign Up</Text>
+					</TouchableOpacity>
+				</View>
 			)}
 
-			{/* Кастомне підтвердження виходу */}
 			<Modal
 				visible={confirmVisible}
 				transparent
@@ -99,11 +125,32 @@ const styles = StyleSheet.create({
 		color: '#2ECC71',
 		fontSize: 22,
 		fontWeight: 'bold',
-		flex: 1,
+		flex: 1, // Allows the logo to take up available space
+	},
+	// New container for Auth buttons to align them better
+	authButtonsContainer: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		// Added gap between buttons (can adjust/remove if not needed)
+		gap: 10,
+	},
+	authButton: {
+		borderWidth: 1,
+		borderColor: '#2ECC71',
+		paddingVertical: 6,
+		paddingHorizontal: 12,
+		borderRadius: 8,
+	},
+	authButtonText: {
+		color: '#2ECC71',
+		fontSize: 14,
+		fontWeight: '500',
 	},
 	userInfo: {
-		alignItems: 'center',
+		alignItems: 'flex-end',
 		marginHorizontal: 10,
+		// Added flexGrow to push logout button to the right if profile exists
+		flexGrow: 1,
 	},
 	userName: {
 		color: '#FFFFFF',
@@ -126,7 +173,7 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		fontWeight: '500',
 	},
-	// --- Modal styles ---
+	// --- Modal styles (as per your original code) ---
 	modalOverlay: {
 		flex: 1,
 		backgroundColor: 'rgba(0,0,0,0.6)',

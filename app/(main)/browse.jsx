@@ -7,7 +7,6 @@ import {
 	View,
 } from 'react-native'
 import FilterSection from '../../components/modules/FilterSection'
-import AppHeader from '../../components/modules/Header'
 import TaskItem from '../../components/ui/TaskItem'
 import { useTasks } from '../../hooks/useTasks'
 
@@ -104,8 +103,6 @@ export default function BrowseScreen() {
 
 	return (
 		<View style={styles.container}>
-			<AppHeader />
-
 			<FilterSection
 				currentSort={sortBy}
 				onSortChange={setSortBy}
