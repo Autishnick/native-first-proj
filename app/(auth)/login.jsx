@@ -9,9 +9,8 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native'
-import LoginHeader from '../../components/modules/LoginHeader'
+import AppHeader from '../../components/modules/Header'
 import { useAuth } from '../../hooks/useAuth'
-
 export default function LoginScreen() {
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
@@ -52,7 +51,7 @@ export default function LoginScreen() {
 
 	return (
 		<>
-			<LoginHeader />
+			<AppHeader />
 			<View style={styles.container}>
 				<Text style={styles.header}>Welcome Back</Text>
 

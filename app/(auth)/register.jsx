@@ -9,7 +9,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native'
-import LoginHeader from '../../components/modules/LoginHeader'
+import AppHeader from '../../components/modules/Header'
 import { useAuth } from '../../hooks/useAuth'
 
 export default function RegisterScreen() {
@@ -67,7 +67,7 @@ export default function RegisterScreen() {
 
 	return (
 		<>
-			<LoginHeader />
+			<AppHeader />
 
 			<View style={styles.container}>
 				<Text style={styles.header}>Create New Account</Text>

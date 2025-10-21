@@ -7,17 +7,13 @@ function RootLayoutNav() {
 	const router = useRouter()
 
 	useEffect(() => {
-		// Не виконуємо перенаправлення, поки йде завантаження
 		if (loading) {
 			return
 		}
 
-		// Якщо користувач увійшов, перенаправляємо його в основний додаток
 		if (user) {
 			router.replace('/(main)')
-		}
-		// Якщо користувач не увійшов, перенаправляємо на екран входу
-		else {
+		} else {
 			router.replace('/(auth)/login')
 		}
 	}, [user, loading, router])
@@ -30,6 +26,8 @@ function RootLayoutNav() {
 		<Stack>
 			<Stack.Screen name='(auth)' options={{ headerShown: false }} />
 			<Stack.Screen name='(main)' options={{ headerShown: false }} />
+			<Stack.Screen name='(auth)/login' options={{ headerShown: false }} />
+			<Stack.Screen name='(auth)/register' options={{ headerShown: false }} />
 		</Stack>
 	)
 }

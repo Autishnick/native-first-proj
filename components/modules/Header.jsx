@@ -1,14 +1,14 @@
-import { useRouter } from 'expo-router'
+import { useRouter, useSegments } from 'expo-router'
 import { useState } from 'react'
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-
 import { useAuth } from '../../hooks/useAuth'
 
 export default function AppHeader() {
 	const router = useRouter()
 	const { profile, logout } = useAuth()
 	const [confirmVisible, setConfirmVisible] = useState(false)
-
+	const segments = useSegments()
+	const currentScreen = segments[segments.length - 1]
 	const navigateLogin = () => {
 		router.replace('/login')
 	}
@@ -16,7 +16,9 @@ export default function AppHeader() {
 	const navigateRegister = () => {
 		router.replace('/register')
 	}
-
+	const navigateHome = () => {
+		router.replace('/(main)')
+	}
 	const handleLogoutConfirm = async () => {
 		try {
 			await logout()
@@ -33,7 +35,17 @@ export default function AppHeader() {
 		if (!role) return 'User'
 		return role.charAt(0).toUpperCase() + role.slice(1)
 	}
+	if (currentScreen === 'login' || currentScreen === 'register') {
+		return (
+			<View style={styles.container}>
+				<Text style={styles.logo}>LOGO</Text>
 
+				<TouchableOpacity onPress={navigateHome}>
+					<Text style={styles.homeButtonText}>Home</Text>
+				</TouchableOpacity>
+			</View>
+		)
+	}
 	return (
 		<View style={styles.container}>
 			<Text style={styles.logo}>LOGO</Text>
@@ -171,6 +183,11 @@ const styles = StyleSheet.create({
 	logoutButtonText: {
 		color: '#2ECC71',
 		fontSize: 14,
+		fontWeight: '500',
+	},
+	homeButtonText: {
+		color: '#2ECC71', // Matching bright green color
+		fontSize: 16,
 		fontWeight: '500',
 	},
 	// --- Modal styles (as per your original code) ---
