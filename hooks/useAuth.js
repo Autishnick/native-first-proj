@@ -11,7 +11,7 @@ import {
 
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
-import { auth, db } from '../src/firebase/config' // ⚠️ перевір шлях
+import { auth, db } from '../src/firebase/config'
 
 export const useAuth = () => {
 	const [user, setUser] = useState(null)
@@ -67,6 +67,10 @@ export const useAuth = () => {
 				password
 			)
 			const authUser = userCredential.user
+
+			// Оновлення профілю в Firebase Auth (для displayName)
+			await updateProfile(authUser, { displayName })
+
 			const userDocRef = doc(db, 'users', authUser.uid)
 			const profileData = {
 				uid: authUser.uid,
@@ -187,6 +191,10 @@ export const useAuth = () => {
 		}
 	}
 
+	const userId = user?.uid || null
+	// Використовуємо displayName з профілю Firestore, якщо є, інакше з Auth
+	const userName = profile?.displayName || user?.displayName || null
+
 	return {
 		user,
 		profile,
@@ -196,6 +204,10 @@ export const useAuth = () => {
 		logout,
 		updateUserProfile,
 		changeUserPassword,
+
+		userId,
+		userName,
+
 		isAuthenticated: !!user,
 		isEmployer: profile?.role === 'employer',
 		isWorker: profile?.role === 'worker',

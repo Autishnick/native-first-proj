@@ -1,24 +1,45 @@
 import { Ionicons } from '@expo/vector-icons'
+import { doc, getDoc } from 'firebase/firestore'
+import { useEffect, useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
+import { db } from '../../src/firebase/config'
 
 export default function TaskItem({ task }) {
+	const [authorNickname, setAuthorNickname] = useState('Loading...')
 	const dueDate = new Date(task.dueDate.seconds * 1000).toLocaleString()
+
+	useEffect(() => {
+		const fetchAuthorNickname = async () => {
+			try {
+				const userDoc = await getDoc(doc(db, 'users', task.createdBy))
+				if (userDoc.exists()) {
+					setAuthorNickname(userDoc.data().displayName || 'Unknown')
+				} else {
+					setAuthorNickname('Unknown')
+				}
+			} catch (error) {
+				console.error('Error fetching author nickname:', error)
+				setAuthorNickname('Error')
+			}
+		}
+
+		if (task.createdBy) {
+			fetchAuthorNickname()
+		}
+	}, [task.createdBy])
 
 	return (
 		<View style={styles.card}>
 			<View style={styles.row}>
-				{/* Ліва частина: текст */}
 				<View style={styles.textContainer}>
 					<Text style={styles.title}>{task.title}</Text>
 					<Text style={styles.description}>{task.description}</Text>
-					<Text style={styles.info}>Adress: {task.address}</Text>
+					<Text style={styles.info}>Address: {task.address}</Text>
 					<Text style={styles.info}>Location: {task.location}</Text>
 					<Text style={styles.info}>Payment: {task.payment} usd</Text>
 					<Text style={styles.info}>Deadline: {dueDate}</Text>
-					<Text style={styles.info}>Author: {task.createdBy}</Text>
+					<Text style={styles.info}>Author: {authorNickname}</Text>
 				</View>
-
-				{/* Права частина: іконка профілю */}
 				<View style={styles.avatarContainer}>
 					<Ionicons name='person-circle-outline' size={60} color='#666' />
 				</View>
@@ -44,7 +65,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	textContainer: {
-		flex: 1, // займає весь простір, крім іконки
+		flex: 1,
 		paddingRight: 12,
 	},
 	avatarContainer: {

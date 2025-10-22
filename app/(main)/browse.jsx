@@ -2,21 +2,27 @@ import { useLocalSearchParams } from 'expo-router'
 import { useEffect, useMemo, useState } from 'react'
 import {
 	ActivityIndicator,
+	Alert,
 	ScrollView,
 	StyleSheet,
 	Text,
 	TouchableOpacity,
 	View,
 } from 'react-native'
-import FilterSection from '../../components/modules/FilterSection'
 import CustomModal from '../../components/modules/ModalTaskDetails'
 import TaskItem from '../../components/ui/TaskItem'
+import { useAuth } from '../../hooks/useAuth'
 import { useTasks } from '../../hooks/useTasks'
+import FilterSection from '../../utils/FilterSection'
+import { createNotification } from '../../utils/firebaseUtils'
 
 export default function BrowseScreen() {
 	const { categoryName } = useLocalSearchParams()
 	const [modalVisible, setModalVisible] = useState(false)
 	const [selectedTask, setSelectedTask] = useState(null)
+
+	// ⭐️ Отримання даних поточного користувача
+	const { userId, userName } = useAuth()
 
 	const CATEGORIES_DATA = [
 		{ name: 'HandyMan', icon: 'tools' },
@@ -94,6 +100,35 @@ export default function BrowseScreen() {
 		setModalVisible(true)
 	}
 
+	// ⭐️ ФУНКЦІЯ ОБРОБКИ СТАВКИ ТА НАДСИЛАННЯ ПОВІДОМЛЕННЯ НА FIREBASE
+	const handleBidSubmission = async notificationData => {
+		if (!userId) {
+			Alert.alert('Error', 'You must be logged in to place a bid.')
+			return
+		}
+
+		if (userId === notificationData.taskCreatorId) {
+			Alert.alert('Wait', 'You cannot place a bid on your own task.')
+			return
+		}
+
+		try {
+			const dataToSend = {
+				...notificationData,
+				senderId: userId,
+				senderName: userName || 'Anonymous User', // Забезпечуємо наявність імені
+			}
+
+			await createNotification(dataToSend)
+
+			Alert.alert('Success', 'Bid submitted and creator notified successfully!')
+			setModalVisible(false)
+		} catch (error) {
+			Alert.alert('Error', 'Failed to submit bid. Please try again.')
+			console.error('Bid submission failed:', error)
+		}
+	}
+
 	if (loading) {
 		return (
 			<View style={styles.centered}>
@@ -115,15 +150,14 @@ export default function BrowseScreen() {
 
 	return (
 		<View style={styles.container}>
-			{/* 🔹 Модальне вікно з деталями таска */}
 			<CustomModal
 				visible={modalVisible}
 				onClose={() => setModalVisible(false)}
 				title={selectedTask ? selectedTask.title : 'Task details'}
 				tasks={selectedTask ? [selectedTask] : []}
+				onSubmitBid={handleBidSubmission}
 			/>
 
-			{/* 🔹 Панель фільтрації */}
 			<FilterSection
 				currentSort={sortBy}
 				onSortChange={setSortBy}

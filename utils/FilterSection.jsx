@@ -180,7 +180,6 @@ const styles = StyleSheet.create({
 		borderBottomColor: '#eee',
 	},
 
-	// Пошукова строка
 	searchContainer: {
 		padding: 12,
 	},

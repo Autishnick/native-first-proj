@@ -61,11 +61,16 @@ export function useTasks() {
 		if (!currentUserId) throw new Error('User is not authenticated.')
 
 		await addDoc(collection(db, 'tasks'), {
-			...taskData, // title, description, payment, etc.
+			...taskData,
 			createdBy: currentUserId,
 			status: 'available',
 			assignedTo: null,
 			createdAt: Timestamp.now(), // Використовуємо Timestamp з Firebase
+
+			// ⭐️ ВИПРАВЛЕННЯ:
+			// Додаємо 'dueDate' за замовчуванням, якщо воно не надано.
+			// Тепер запит 'orderBy('dueDate')' буде включати цей документ.
+			dueDate: taskData.dueDate || Timestamp.now(),
 		})
 	}
 

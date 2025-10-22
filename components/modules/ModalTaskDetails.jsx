@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons'
-import { useState } from 'react'
+import { doc, getDoc } from 'firebase/firestore' // getDoc залишається для нікнеймів
+import { useEffect, useState } from 'react'
 import {
+	Alert,
 	Modal,
 	ScrollView,
 	StyleSheet,
@@ -9,57 +11,133 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native'
+// ⭐️ ПОВЕРНУЛИ ІМПОРТИ
+import { useAuth } from '../../hooks/useAuth'
+import { db } from '../../src/firebase/config'
+import { createNotification } from '../../utils/firebaseUtils'
 
+/**
+ * Компонент модального вікна, який САМОСТІЙНО обробляє логіку ставки.
+ */
 export default function CustomModal({
 	visible,
 	onClose,
-	title = 'Task details',
 	tasks = [],
+	// ⛔️ ВИДАЛЕНО: onSubmitBid
 	searchQuery = '',
 }) {
+	// ⭐️ ПОВЕРНУЛИ: const { userId, userName } = useAuth()
+	const { userId, userName } = useAuth()
+
 	const initialBidPrice = '0'
 
 	const [editing, setEditing] = useState(false)
-	// Стан для фактичної поточної ставки (початкове '0')
 	const [bidPrice, setBidPrice] = useState(initialBidPrice)
-	// Стан для тимчасової ставки під час редагування (для функції 'Cancel')
 	const [tempBidPrice, setTempBidPrice] = useState(initialBidPrice)
+	const [authorNicknames, setAuthorNicknames] = useState({})
+	const [submitting, setSubmitting] = useState(false)
 
+	// ... (useEffect для fetchAuthorNicknames залишається без змін) ...
+	useEffect(() => {
+		const fetchAuthorNicknames = async () => {
+			const nicknames = {}
+			for (const task of tasks) {
+				if (task.createdBy && !nicknames[task.createdBy]) {
+					try {
+						const userDoc = await getDoc(doc(db, 'users', task.createdBy))
+						if (userDoc.exists()) {
+							nicknames[task.createdBy] =
+								userDoc.data().displayName || 'Unknown'
+						} else {
+							nicknames[task.createdBy] = 'Unknown'
+						}
+					} catch (error) {
+						console.error('Error fetching author nickname:', error)
+						nicknames[task.createdBy] = 'Error'
+					}
+				}
+			}
+			setAuthorNicknames(nicknames)
+		}
+		if (tasks.length > 0) {
+			fetchAuthorNicknames()
+		}
+	}, [tasks])
+
+	// ... (handleBidPriceChange, handleEdit, handleSave, handleCancel залишаються без змін) ...
 	const handleBidPriceChange = text => {
-		// Регулярний вираз дозволяє лише цифри (0-9)
 		const newText = text.replace(/[^0-9]/g, '')
 		setTempBidPrice(newText)
 	}
-
 	const handleEdit = () => {
 		if (!editing) {
 			setTempBidPrice(bidPrice)
 		}
 		setEditing(true)
 	}
-
-	// Функція для 'Save'
 	const handleSave = () => {
 		const finalPrice = tempBidPrice === '' ? '0' : tempBidPrice
 		setBidPrice(finalPrice)
 		setEditing(false)
 	}
-
-	// Функція для 'Cancel'
 	const handleCancel = () => {
-		// Відновлюємо tempBidPrice до поточного bidPrice і виходимо з режиму редагування
 		setTempBidPrice(bidPrice)
 		setEditing(false)
 	}
 
-	const handleSubmitBid = () => {
+	// ⭐️ ПОВЕРНУЛИ ЛОГІКУ У handleSubmitBid
+	const handleSubmitBid = async () => {
+		// 1. Валідація
+		if (bidPrice === '0' || bidPrice === '') {
+			Alert.alert('Error', 'Please enter a valid bid amount')
+			return
+		}
+		if (tasks.length === 0) {
+			Alert.alert('Error', 'No task found')
+			return
+		}
+
+		const task = tasks[0] // Беремо перший таск
+
+		// Перевірка на ставку на власне завдання
+		if (task.createdBy === userId) {
+			Alert.alert('Error', 'You cannot place a bid on your own task.')
+			return
+		}
+
+		setSubmitting(true)
 		setEditing(false)
-		alert(`Bid submitted: $${bidPrice}`)
+
+		try {
+			// 2. ⭐️ Викликаємо createNotification напряму
+			await createNotification({
+				recipientId: task.createdBy,
+				senderId: userId,
+				senderName: userName || 'Anonymous',
+				taskId: task.id,
+				type: 'new_bid', // Переконайтеся, що ваш firebaseUtils очікує 'new_bid'
+				message: ` made a new bid on "${task.title}"`,
+				bidAmount: parseInt(bidPrice),
+			})
+
+			// 3. ⭐️ Повертаємо Alert та onClose
+			Alert.alert('Success', `Bid of $${bidPrice} submitted successfully!`)
+
+			// 4. Скидаємо стан
+			setBidPrice(initialBidPrice)
+			setTempBidPrice(initialBidPrice)
+
+			// 5. Закриваємо модальне вікно
+			onClose()
+		} catch (error) {
+			console.error('Error submitting bid:', error)
+			Alert.alert('Error', 'Failed to submit bid. Please try again.')
+		} finally {
+			setSubmitting(false)
+		}
 	}
 
-	// Визначаємо, чи потрібно відображати секцію ставки (завжди, незалежно від task)
-	// Якщо ви хочете, щоб секція відображалася завжди: const showBidSection = true
-	const showBidSection = true // Змінено на завжди true для простоти, оскільки ми прибрали mainTask логіку
+	const showBidSection = true
 
 	return (
 		<Modal
@@ -96,12 +174,15 @@ export default function CustomModal({
 								}
 							}
 
+							const authorNickname =
+								authorNicknames[task.createdBy] || 'Loading...'
+
 							return (
 								<View key={task.id} style={styles.taskContainer}>
 									{task.title && <Text style={styles.title}>{task.title}</Text>}
 									{task.createdBy && (
 										<Text style={styles.description}>
-											Created by: {task.createdBy}
+											Created by: {authorNickname}
 										</Text>
 									)}
 									{task.location && (
@@ -140,7 +221,11 @@ export default function CustomModal({
 					<View style={styles.bidSection}>
 						<View style={styles.bidHeader}>
 							<Text style={styles.bidLabel}>Your Bid Price</Text>
-							<TouchableOpacity style={styles.editButton} onPress={handleEdit}>
+							<TouchableOpacity
+								style={styles.editButton}
+								onPress={handleEdit}
+								disabled={submitting}
+							>
 								<Ionicons name='pencil' size={18} color='#000' />
 								<Text style={styles.editText}>Edit</Text>
 							</TouchableOpacity>
@@ -151,7 +236,6 @@ export default function CustomModal({
 								<TextInput
 									style={styles.input}
 									keyboardType='numeric'
-									// Використовуємо handleBidPriceChange для валідації
 									value={tempBidPrice}
 									onChangeText={handleBidPriceChange}
 								/>
@@ -174,12 +258,17 @@ export default function CustomModal({
 							<Text style={styles.bidValue}>${bidPrice}</Text>
 						)}
 
-						{/* Кнопка "Submit Bid" */}
 						<TouchableOpacity
-							style={styles.submitButton}
-							onPress={handleSubmitBid}
+							style={[
+								styles.submitButton,
+								submitting && styles.submitButtonDisabled,
+							]}
+							onPress={handleSubmitBid} // ⭐️ Викликає оновлену функцію
+							disabled={submitting}
 						>
-							<Text style={styles.submitText}>Submit Bid</Text>
+							<Text style={styles.submitText}>
+								{submitting ? 'Submitting...' : 'Submit Bid'}
+							</Text>
 						</TouchableOpacity>
 					</View>
 				)}
@@ -196,7 +285,8 @@ const styles = StyleSheet.create({
 	header: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		paddingVertical: 14,
+		paddingTop: 50, // Збільшено для SafeArea (можливо)
+		paddingBottom: 20,
 		paddingHorizontal: 16,
 		backgroundColor: '#fff',
 		borderBottomWidth: 1,
@@ -243,7 +333,6 @@ const styles = StyleSheet.create({
 		marginTop: 60,
 		fontSize: 16,
 	},
-
 	bidSection: {
 		backgroundColor: '#021526',
 		padding: 16,
@@ -299,6 +388,10 @@ const styles = StyleSheet.create({
 		shadowOffset: { width: 0, height: 4 },
 		shadowRadius: 8,
 	},
+	submitButtonDisabled: {
+		backgroundColor: '#0a7d3e',
+		opacity: 0.6,
+	},
 	submitText: {
 		fontSize: 18,
 		fontWeight: '600',
@@ -312,7 +405,7 @@ const styles = StyleSheet.create({
 	},
 	saveButton: {
 		flex: 1,
-		backgroundColor: '#16aa56ff', // Зелений, як submit
+		backgroundColor: '#16aa56ff',
 		paddingVertical: 10,
 		borderRadius: 10,
 		alignItems: 'center',
@@ -325,7 +418,7 @@ const styles = StyleSheet.create({
 	},
 	cancelButton: {
 		flex: 1,
-		backgroundColor: '#A9A9A9', // Середній сірий
+		backgroundColor: '#A9A9A9',
 		paddingVertical: 10,
 		borderRadius: 10,
 		alignItems: 'center',
@@ -334,6 +427,6 @@ const styles = StyleSheet.create({
 	cancelText: {
 		fontSize: 16,
 		fontWeight: '600',
-		color: '#fff', // Білий текст для контрасту
+		color: '#fff',
 	},
 })
