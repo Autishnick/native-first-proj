@@ -1,40 +1,54 @@
-import { useMemo, useState } from 'react'
+import { useLocalSearchParams } from 'expo-router'
+import { useEffect, useMemo, useState } from 'react'
 import {
 	ActivityIndicator,
 	ScrollView,
 	StyleSheet,
 	Text,
+	TouchableOpacity,
 	View,
 } from 'react-native'
 import FilterSection from '../../components/modules/FilterSection'
+import CustomModal from '../../components/modules/ModalTaskDetails'
 import TaskItem from '../../components/ui/TaskItem'
 import { useTasks } from '../../hooks/useTasks'
 
-const TASK_CATEGORIES = [
-	'HandyMan',
-	'Electrician',
-	'Construction Cleaning',
-	'Painter',
-	'Home Cleaning',
-	'Gardening',
-	'Flooring',
-	'Air Condition technician',
-]
-
 export default function BrowseScreen() {
+	const { categoryName } = useLocalSearchParams()
+	const [modalVisible, setModalVisible] = useState(false)
+	const [selectedTask, setSelectedTask] = useState(null)
+
+	const CATEGORIES_DATA = [
+		{ name: 'HandyMan', icon: 'tools' },
+		{ name: 'Electrician', icon: 'power-plug' },
+		{ name: 'Construction Cleaning', icon: 'broom' },
+		{ name: 'Painter', icon: 'format-paint' },
+		{ name: 'Home Cleaning', icon: 'vacuum' },
+		{ name: 'Gardening', icon: 'flower-tulip' },
+		{ name: 'Flooring', icon: 'layers-outline' },
+		{ name: 'Air Condition technician', icon: 'air-conditioner' },
+	]
+
+	const CATEGORY_NAMES = CATEGORIES_DATA.map(item => item.name)
+
 	const { tasks, loading, error } = useTasks()
+
 	const [sortBy, setSortBy] = useState('date')
 	const [sortOrder, setSortOrder] = useState('desc')
 	const [selectedCategory, setSelectedCategory] = useState('all')
 	const [searchQuery, setSearchQuery] = useState('')
 
+	useEffect(() => {
+		if (categoryName && CATEGORY_NAMES.includes(categoryName)) {
+			setSelectedCategory(categoryName)
+		}
+	}, [categoryName])
+
 	const filteredAndSortedTasks = useMemo(() => {
-		// Фільтр по категорії
 		let filteredTasks = tasks.filter(
 			task => selectedCategory === 'all' || task.category === selectedCategory
 		)
 
-		// Фільтр по пошуковому запиту
 		if (searchQuery.trim()) {
 			const query = searchQuery.toLowerCase().trim()
 			filteredTasks = filteredTasks.filter(
@@ -47,32 +61,25 @@ export default function BrowseScreen() {
 
 		const tasksToSort = [...filteredTasks]
 
-		let sortedTasks
 		switch (sortBy) {
 			case 'alphabet':
-				sortedTasks = tasksToSort.sort((a, b) => {
-					return sortOrder === 'asc'
+				return tasksToSort.sort((a, b) =>
+					sortOrder === 'asc'
 						? a.title.localeCompare(b.title)
 						: b.title.localeCompare(a.title)
-				})
-				break
+				)
 			case 'price':
-				sortedTasks = tasksToSort.sort((a, b) => {
-					return sortOrder === 'asc'
-						? a.payment - b.payment
-						: b.payment - a.payment
-				})
-				break
+				return tasksToSort.sort((a, b) =>
+					sortOrder === 'asc' ? a.payment - b.payment : b.payment - a.payment
+				)
 			case 'date':
 			default:
-				sortedTasks = tasksToSort.sort((a, b) => {
-					const dateA = a.createdAt?.toDate()?.getTime() || 0
-					const dateB = b.createdAt?.toDate()?.getTime() || 0
+				return tasksToSort.sort((a, b) => {
+					const dateA = a.createdAt?.toDate?.()?.getTime?.() || 0
+					const dateB = b.createdAt?.toDate?.()?.getTime?.() || 0
 					return sortOrder === 'asc' ? dateA - dateB : dateB - dateA
 				})
-				break
 		}
-		return sortedTasks
 	}, [tasks, sortBy, sortOrder, selectedCategory, searchQuery])
 
 	const handleReset = () => {
@@ -80,6 +87,11 @@ export default function BrowseScreen() {
 		setSortOrder('desc')
 		setSelectedCategory('all')
 		setSearchQuery('')
+	}
+
+	const handleOpenTaskDetails = task => {
+		setSelectedTask(task)
+		setModalVisible(true)
 	}
 
 	if (loading) {
@@ -103,10 +115,19 @@ export default function BrowseScreen() {
 
 	return (
 		<View style={styles.container}>
+			{/* 🔹 Модальне вікно з деталями таска */}
+			<CustomModal
+				visible={modalVisible}
+				onClose={() => setModalVisible(false)}
+				title={selectedTask ? selectedTask.title : 'Task details'}
+				tasks={selectedTask ? [selectedTask] : []}
+			/>
+
+			{/* 🔹 Панель фільтрації */}
 			<FilterSection
 				currentSort={sortBy}
 				onSortChange={setSortBy}
-				categories={TASK_CATEGORIES}
+				categories={CATEGORY_NAMES}
 				currentCategory={selectedCategory}
 				onCategoryChange={setSelectedCategory}
 				sortOrder={sortOrder}
@@ -116,11 +137,17 @@ export default function BrowseScreen() {
 				onSearchChange={setSearchQuery}
 			/>
 
-			{/* Список завдань */}
+			{/* 🔹 Список тасків */}
 			<ScrollView>
 				{filteredAndSortedTasks.length > 0 ? (
 					filteredAndSortedTasks.map(task => (
-						<TaskItem key={task.id} task={task} />
+						<TouchableOpacity
+							key={task.id}
+							activeOpacity={0.8}
+							onPress={() => handleOpenTaskDetails(task)}
+						>
+							<TaskItem task={task} />
+						</TouchableOpacity>
 					))
 				) : (
 					<Text style={styles.messageText}>

@@ -33,7 +33,6 @@ export default function FilterSection({
 
 	return (
 		<View style={styles.container}>
-			{/* Пошукова строка */}
 			<View style={styles.searchContainer}>
 				<View style={styles.searchInputWrapper}>
 					<Text style={styles.searchIcon}>🔍</Text>
@@ -53,9 +52,7 @@ export default function FilterSection({
 				</View>
 			</View>
 
-			{/* Панель сортування та Reset */}
 			<View style={styles.filterBar}>
-				{/* Кнопки сортування */}
 				<View style={styles.sortContainer}>
 					<TouchableOpacity
 						style={[

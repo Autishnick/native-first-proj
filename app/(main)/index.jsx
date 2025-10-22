@@ -1,20 +1,103 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { useRouter } from 'expo-router'
 import React from 'react'
-import { StyleSheet, View } from 'react-native'
+import {
+	FlatList,
+	StyleSheet,
+	Text,
+	TouchableOpacity,
+	View,
+} from 'react-native'
+
+const CATEGORIES = [
+	{ name: 'HandyMan', icon: 'tools' },
+	{ name: 'Electrician', icon: 'power-plug' },
+	{ name: 'Construction Cleaning', icon: 'broom' },
+	{ name: 'Painter', icon: 'format-paint' },
+	{ name: 'Home Cleaning', icon: 'vacuum' },
+	{ name: 'Gardening', icon: 'flower-tulip' },
+	{ name: 'Flooring', icon: 'layers-outline' },
+	{ name: 'Air Condition technician', icon: 'air-conditioner' },
+]
 
 export default function ActiveTodosScreen() {
-	return <View style={styles.container}></View>
+	const router = useRouter()
+	const handlePressCategory = categoryName => {
+		console.log('Navigating to browse with category:', categoryName)
+		router.push({
+			pathname: '/browse',
+			params: { categoryName },
+		})
+	}
+
+	const renderCategoryItem = ({ item }) => (
+		<TouchableOpacity
+			style={styles.categoryItem}
+			onPress={() => handlePressCategory(item.name)}
+			activeOpacity={0.7}
+		>
+			<MaterialCommunityIcons name={item.icon} size={40} color='#0B1A2A' />
+			<Text style={styles.categoryText}>{item.name}</Text>
+		</TouchableOpacity>
+	)
+
+	return (
+		<View style={styles.container}>
+			<Text style={styles.mainText}>Our categories</Text>
+			<FlatList
+				data={CATEGORIES}
+				renderItem={renderCategoryItem}
+				keyExtractor={item => item.name}
+				numColumns={2}
+				contentContainerStyle={styles.gridContainer}
+				showsVerticalScrollIndicator={false}
+			/>
+		</View>
+	)
 }
 
+// 6. Оновлюємо стилі, щоб вони відповідали фото
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		padding: 10,
-		backgroundColor: 'white',
+		// ФоновИй колір, як на скріншоті (світло-сірий)
+		backgroundColor: '#F0F4F8',
 	},
-	header: {
-		fontSize: 24,
-		fontWeight: 'bold',
-		margin: 10,
-		color: '#333',
+	gridContainer: {
+		padding: 10,
+	},
+	categoryItem: {
+		flex: 1,
+		// Світлий фон для кнопок
+		backgroundColor: '#FFFFFF',
+		borderRadius: 12,
+		paddingVertical: 20,
+		paddingHorizontal: 10,
+		margin: 8,
+		// Вирівнюємо вміст по центру
+		alignItems: 'center',
+		justifyContent: 'center',
+		// Тінь для карток (опціонально, але схоже на фото)
+		elevation: 3,
+		shadowColor: '#000',
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.1,
+		shadowRadius: 2,
+		// Мінімальна висота, щоб кнопки були однакового розміру
+		minHeight: 130,
+	},
+	categoryText: {
+		marginTop: 10,
+		fontSize: 14,
+		fontWeight: '500',
+		color: '#0B1A2A', // Темний текст
+		textAlign: 'center', // Для багаторядкових назв
+	},
+	mainText: {
+		marginTop: 10,
+		fontSize: 27,
+		fontWeight: '500',
+		color: '#0B1A2A',
+		textAlign: 'center',
 	},
 })
