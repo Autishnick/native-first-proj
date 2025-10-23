@@ -8,17 +8,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native'
-
-const CATEGORIES = [
-	{ name: 'HandyMan', icon: 'tools' },
-	{ name: 'Electrician', icon: 'power-plug' },
-	{ name: 'Construction Cleaning', icon: 'broom' },
-	{ name: 'Painter', icon: 'format-paint' },
-	{ name: 'Home Cleaning', icon: 'vacuum' },
-	{ name: 'Gardening', icon: 'flower-tulip' },
-	{ name: 'Flooring', icon: 'layers-outline' },
-	{ name: 'Air Condition technician', icon: 'air-conditioner' },
-]
+import { CATEGORIES_DATA } from '../../utils/CategoriesData'
 
 export default function ActiveTodosScreen() {
 	const router = useRouter()
@@ -45,7 +35,7 @@ export default function ActiveTodosScreen() {
 		<View style={styles.container}>
 			<Text style={styles.mainText}>Our categories</Text>
 			<FlatList
-				data={CATEGORIES}
+				data={CATEGORIES_DATA}
 				renderItem={renderCategoryItem}
 				keyExtractor={item => item.name}
 				numColumns={2}

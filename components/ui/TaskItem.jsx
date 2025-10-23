@@ -34,11 +34,18 @@ export default function TaskItem({ task }) {
 				<View style={styles.textContainer}>
 					<Text style={styles.title}>{task.title}</Text>
 					<Text style={styles.description}>{task.description}</Text>
-					<Text style={styles.info}>Address: {task.address}</Text>
-					<Text style={styles.info}>Location: {task.location}</Text>
-					<Text style={styles.info}>Payment: {task.payment} usd</Text>
-					<Text style={styles.info}>Deadline: {dueDate}</Text>
-					<Text style={styles.info}>Author: {authorNickname}</Text>
+
+					{task.location && task.location.trim() !== '' && (
+						<Text style={styles.info}>📍 Location: {task.location}</Text>
+					)}
+
+					{task.address && task.address.trim() !== '' && (
+						<Text style={styles.info}>🏠 Address: {task.address}</Text>
+					)}
+
+					<Text style={styles.info}>💰 Payment: ${task.payment}</Text>
+					<Text style={styles.info}>📅 Created: {dueDate}</Text>
+					<Text style={styles.info}>👤 Author: {authorNickname}</Text>
 				</View>
 				<View style={styles.avatarContainer}>
 					<Ionicons name='person-circle-outline' size={60} color='#666' />
@@ -84,5 +91,6 @@ const styles = StyleSheet.create({
 	info: {
 		fontSize: 12,
 		color: '#666',
+		marginBottom: 2,
 	},
 })

@@ -13,9 +13,9 @@ import CustomModal from '../../components/modules/ModalTaskDetails'
 import TaskItem from '../../components/ui/TaskItem'
 import { useAuth } from '../../hooks/useAuth'
 import { useTasks } from '../../hooks/useTasks'
+import { CATEGORIES_DATA } from '../../utils/CategoriesData'
 import FilterSection from '../../utils/FilterSection'
 import { createNotification } from '../../utils/firebaseUtils'
-
 export default function BrowseScreen() {
 	const { categoryName } = useLocalSearchParams()
 	const [modalVisible, setModalVisible] = useState(false)
@@ -23,17 +23,6 @@ export default function BrowseScreen() {
 
 	// ⭐️ Отримання даних поточного користувача
 	const { userId, userName } = useAuth()
-
-	const CATEGORIES_DATA = [
-		{ name: 'HandyMan', icon: 'tools' },
-		{ name: 'Electrician', icon: 'power-plug' },
-		{ name: 'Construction Cleaning', icon: 'broom' },
-		{ name: 'Painter', icon: 'format-paint' },
-		{ name: 'Home Cleaning', icon: 'vacuum' },
-		{ name: 'Gardening', icon: 'flower-tulip' },
-		{ name: 'Flooring', icon: 'layers-outline' },
-		{ name: 'Air Condition technician', icon: 'air-conditioner' },
-	]
 
 	const CATEGORY_NAMES = CATEGORIES_DATA.map(item => item.name)
 

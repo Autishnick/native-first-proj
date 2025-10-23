@@ -7,35 +7,27 @@ import {
 	StyleSheet,
 	Text,
 	TextInput,
-	TouchableOpacity, // ⭐️ 1. Додано TouchableOpacity
+	TouchableOpacity,
 	View,
 } from 'react-native'
-const CATEGORIES_DATA = [
-	{ name: 'HandyMan', icon: 'tools' },
-	{ name: 'Electrician', icon: 'power-plug' },
-	{ name: 'Construction Cleaning', icon: 'broom' },
-	{ name: 'Painter', icon: 'format-paint' },
-	{ name: 'Home Cleaning', icon: 'vacuum' },
-	{ name: 'Gardening', icon: 'flower-tulip' },
-	{ name: 'Flooring', icon: 'layers-outline' },
-	{ name: 'Air Condition technician', icon: 'air-conditioner' },
-]
-// ⭐️ 2. Визначимо список категорій
+import { CATEGORIES_DATA } from '../../utils/CategoriesData'
 const CATEGORIES = CATEGORIES_DATA.map(item => item.name)
 
 export default function CreateTaskModal({ visible, onClose, onSubmit }) {
-	// 3. Стани для кожного поля форми
 	const [title, setTitle] = useState('')
 	const [description, setDescription] = useState('')
-	const [category, setCategory] = useState('General') // "General" - за замовчуванням
+	const [category, setCategory] = useState('General')
 	const [payment, setPayment] = useState('')
+	// ⭐️ 1. Додаємо нові стани для локації та адреси
+	const [locationName, setLocationName] = useState('')
+	const [address, setAddress] = useState('')
+
 	const [isSubmitting, setIsSubmitting] = useState(false)
 
-	// 4. Функція відправки
 	const handleSubmit = async () => {
-		// ... (Валідація без змін)
+		// Оновлена валідація (робимо основні поля обов'язковими)
 		if (!title.trim() || !description.trim() || !payment.trim()) {
-			Alert.alert('Error', 'Please fill in all fields.')
+			Alert.alert('Error', 'Please fill in Title, Description, and Payment.')
 			return
 		}
 		const paymentNumber = parseFloat(payment)
@@ -43,19 +35,18 @@ export default function CreateTaskModal({ visible, onClose, onSubmit }) {
 			Alert.alert('Error', 'Please enter a valid payment amount.')
 			return
 		}
-
-		setIsSubmitting(true)
 		try {
-			// 5. Збираємо дані (включаючи обрану категорію)
+			// ⭐️ 2. Збираємо всі дані, включаючи 'locationName' та 'address'
 			await onSubmit({
 				title,
 				description,
-				category, // 'category' тепер береться зі стану
+				category,
 				payment: paymentNumber,
+				location: locationName.trim(), // Передаємо нові дані
+				address: address.trim(), // Передаємо нові дані
 			})
 
-			// 6. Очищення форми та закриття
-			handleClose() // Використовуємо handleClose для очищення
+			handleClose() // Очищуємо форму при успіху
 		} catch (error) {
 			console.error('Modal submission error:', error)
 			Alert.alert('Error', 'Failed to create task. Please try again.')
@@ -64,14 +55,15 @@ export default function CreateTaskModal({ visible, onClose, onSubmit }) {
 		}
 	}
 
-	// 7. Функція закриття
 	const handleClose = () => {
-		// Очищуємо форму при закритті
+		// ⭐️ 3. Очищуємо всі поля при закритті
 		setTitle('')
 		setDescription('')
-		setCategory('General') // Скидаємо на "General"
+		setCategory('General')
 		setPayment('')
-		onClose() // Викликаємо функцію закриття з props
+		setLocationName('') // Очищуємо локацію
+		setAddress('') // Очищуємо адресу
+		onClose()
 	}
 
 	return (
@@ -91,10 +83,11 @@ export default function CreateTaskModal({ visible, onClose, onSubmit }) {
 							style={styles.input}
 							value={title}
 							onChangeText={setTitle}
-							placeholder='e.g., Mow the lawn'
+							placeholder='Some Title'
 							placeholderTextColor='#999'
 						/>
 
+						{/* Description */}
 						<Text style={styles.label}>Description</Text>
 						<TextInput
 							style={[styles.input, styles.textArea]}
@@ -106,18 +99,16 @@ export default function CreateTaskModal({ visible, onClose, onSubmit }) {
 							numberOfLines={4}
 						/>
 
-						{/* ⭐️ 8. ЗАМІНЕНО TextInput НА БЛОК КНОПОК */}
 						<Text style={styles.label}>Category</Text>
 						<View style={styles.categoryContainer}>
 							{CATEGORIES.map(cat => (
 								<TouchableOpacity
 									key={cat}
-									// Застосовуємо активний стиль, якщо стан 'category' == 'cat'
 									style={[
 										styles.categoryButton,
 										category === cat && styles.categoryButtonActive,
 									]}
-									onPress={() => setCategory(cat)} // Встановлюємо категорію при натисканні
+									onPress={() => setCategory(cat)}
 								>
 									<Text
 										style={[
@@ -130,8 +121,8 @@ export default function CreateTaskModal({ visible, onClose, onSubmit }) {
 								</TouchableOpacity>
 							))}
 						</View>
-						{/* ⭐️ КІНЕЦЬ БЛОКУ КНОПОК */}
 
+						{/* Payment */}
 						<Text style={styles.label}>Payment ($)</Text>
 						<TextInput
 							style={styles.input}
@@ -141,6 +132,25 @@ export default function CreateTaskModal({ visible, onClose, onSubmit }) {
 							placeholderTextColor='#999'
 							keyboardType='numeric'
 						/>
+
+						<Text style={styles.label}>Location</Text>
+						<TextInput
+							style={styles.input}
+							value={locationName}
+							onChangeText={setLocationName}
+							placeholder='Task location'
+							placeholderTextColor='#999'
+						/>
+
+						<Text style={styles.label}>Full Address (Optional)</Text>
+						<TextInput
+							style={styles.input}
+							value={address}
+							onChangeText={setAddress}
+							placeholder='Task address'
+							placeholderTextColor='#999'
+						/>
+						{/* ⭐️ КІНЕЦЬ НОВИХ ПОЛІВ */}
 
 						<View style={styles.modalButtonContainer}>
 							<Button title='Cancel' onPress={handleClose} color='#FF3B30' />
@@ -157,7 +167,7 @@ export default function CreateTaskModal({ visible, onClose, onSubmit }) {
 	)
 }
 
-// 9. Оновлені стилі
+// Стилі (без змін, крім додавання * до label)
 const styles = StyleSheet.create({
 	modalOverlay: {
 		flex: 1,
@@ -210,25 +220,23 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-around',
 		marginTop: 20,
 	},
-
-	// ⭐️ 10. НОВІ СТИЛІ ДЛЯ КНОПОК КАТЕГОРІЙ
 	categoryContainer: {
 		flexDirection: 'row',
-		flexWrap: 'wrap', // Дозволяє кнопкам переноситись на новий рядок
+		flexWrap: 'wrap',
 		marginBottom: 16,
 	},
 	categoryButton: {
 		backgroundColor: '#F3F4F6',
 		paddingVertical: 10,
 		paddingHorizontal: 16,
-		borderRadius: 20, // Округлі кнопки
+		borderRadius: 20,
 		marginRight: 10,
 		marginBottom: 10,
 		borderWidth: 1,
 		borderColor: '#E5E7EB',
 	},
 	categoryButtonActive: {
-		backgroundColor: '#007AFF', // Активний колір (синій)
+		backgroundColor: '#007AFF',
 		borderColor: '#007AFF',
 	},
 	categoryButtonText: {
@@ -237,6 +245,6 @@ const styles = StyleSheet.create({
 		fontWeight: '600',
 	},
 	categoryButtonTextActive: {
-		color: '#FFFFFF', // Білий текст на активній кнопці
+		color: '#FFFFFF',
 	},
 })

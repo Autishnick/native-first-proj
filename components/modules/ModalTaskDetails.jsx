@@ -1,5 +1,12 @@
 import { Ionicons } from '@expo/vector-icons'
-import { doc, getDoc } from 'firebase/firestore' // getDoc залишається для нікнеймів
+import {
+	collection,
+	doc,
+	getDoc,
+	getDocs,
+	query,
+	where,
+} from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import {
 	Alert,
@@ -11,33 +18,26 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native'
-// ⭐️ ПОВЕРНУЛИ ІМПОРТИ
 import { useAuth } from '../../hooks/useAuth'
+import { useTasks } from '../../hooks/useTasks'
 import { db } from '../../src/firebase/config'
 import { createNotification } from '../../utils/firebaseUtils'
-
-/**
- * Компонент модального вікна, який САМОСТІЙНО обробляє логіку ставки.
- */
 export default function CustomModal({
 	visible,
 	onClose,
 	tasks = [],
-	// ⛔️ ВИДАЛЕНО: onSubmitBid
 	searchQuery = '',
 }) {
-	// ⭐️ ПОВЕРНУЛИ: const { userId, userName } = useAuth()
-	const { userId, userName } = useAuth()
-
+	const { userId, userName, isWorker } = useAuth()
+	const { addBid } = useTasks()
 	const initialBidPrice = '0'
-
 	const [editing, setEditing] = useState(false)
 	const [bidPrice, setBidPrice] = useState(initialBidPrice)
 	const [tempBidPrice, setTempBidPrice] = useState(initialBidPrice)
 	const [authorNicknames, setAuthorNicknames] = useState({})
+	const [bidders, setBidders] = useState([])
 	const [submitting, setSubmitting] = useState(false)
 
-	// ... (useEffect для fetchAuthorNicknames залишається без змін) ...
 	useEffect(() => {
 		const fetchAuthorNicknames = async () => {
 			const nicknames = {}
@@ -64,30 +64,58 @@ export default function CustomModal({
 		}
 	}, [tasks])
 
-	// ... (handleBidPriceChange, handleEdit, handleSave, handleCancel залишаються без змін) ...
+	// 🔹 Якщо користувач — адмін, вантажимо список відгуків (bids)
+	// 🔹 Якщо користувач — адмін, вантажимо список відгуків (bids)
+	useEffect(() => {
+		// ✅ Make sure userId is available before querying
+		if (!isWorker && tasks.length > 0 && userId) {
+			const fetchBids = async () => {
+				try {
+					const task = tasks[0]
+
+					// ✅ UPDATE THIS QUERY
+					const q = query(
+						collection(db, 'notifications'),
+						where('taskId', '==', task.id),
+						where('recipientId', '==', userId) // 👈 ADD THIS LINE
+					)
+
+					const snapshot = await getDocs(q)
+					const bidList = snapshot.docs
+						.map(doc => doc.data())
+						.filter(n => n.type === 'new_bid')
+					setBidders(bidList)
+				} catch (error) {
+					console.error('Error fetching bids:', error)
+				}
+			}
+			fetchBids()
+		}
+	}, [isWorker, tasks, userId]) // ✅ Add userId as a dependency
+
 	const handleBidPriceChange = text => {
 		const newText = text.replace(/[^0-9]/g, '')
 		setTempBidPrice(newText)
 	}
+
 	const handleEdit = () => {
-		if (!editing) {
-			setTempBidPrice(bidPrice)
-		}
+		if (!editing) setTempBidPrice(bidPrice)
 		setEditing(true)
 	}
+
 	const handleSave = () => {
 		const finalPrice = tempBidPrice === '' ? '0' : tempBidPrice
 		setBidPrice(finalPrice)
 		setEditing(false)
 	}
+
 	const handleCancel = () => {
 		setTempBidPrice(bidPrice)
 		setEditing(false)
 	}
 
-	// ⭐️ ПОВЕРНУЛИ ЛОГІКУ У handleSubmitBid
+	// 🔹 Воркер надсилає ставку
 	const handleSubmitBid = async () => {
-		// 1. Валідація
 		if (bidPrice === '0' || bidPrice === '') {
 			Alert.alert('Error', 'Please enter a valid bid amount')
 			return
@@ -97,9 +125,7 @@ export default function CustomModal({
 			return
 		}
 
-		const task = tasks[0] // Беремо перший таск
-
-		// Перевірка на ставку на власне завдання
+		const task = tasks[0]
 		if (task.createdBy === userId) {
 			Alert.alert('Error', 'You cannot place a bid on your own task.')
 			return
@@ -109,25 +135,22 @@ export default function CustomModal({
 		setEditing(false)
 
 		try {
-			// 2. ⭐️ Викликаємо createNotification напряму
 			await createNotification({
 				recipientId: task.createdBy,
 				senderId: userId,
 				senderName: userName || 'Anonymous',
 				taskId: task.id,
-				type: 'new_bid', // Переконайтеся, що ваш firebaseUtils очікує 'new_bid'
+				type: 'new_bid',
 				message: ` made a new bid on "${task.title}"`,
 				bidAmount: parseInt(bidPrice),
 			})
-
-			// 3. ⭐️ Повертаємо Alert та onClose
+			await addBid(task.id, {
+				workerName: userName || 'Anonymous',
+				bidAmount: parseInt(bidPrice),
+			})
 			Alert.alert('Success', `Bid of $${bidPrice} submitted successfully!`)
-
-			// 4. Скидаємо стан
 			setBidPrice(initialBidPrice)
 			setTempBidPrice(initialBidPrice)
-
-			// 5. Закриваємо модальне вікно
 			onClose()
 		} catch (error) {
 			console.error('Error submitting bid:', error)
@@ -137,8 +160,7 @@ export default function CustomModal({
 		}
 	}
 
-	const showBidSection = true
-
+	// 🔹 Основний контент
 	return (
 		<Modal
 			animationType='slide'
@@ -147,6 +169,7 @@ export default function CustomModal({
 			onRequestClose={onClose}
 		>
 			<View style={styles.fullScreenContainer}>
+				{/* Header */}
 				<View style={styles.header}>
 					<TouchableOpacity onPress={onClose} style={styles.backButton}>
 						<Ionicons name='arrow-back' size={26} color='#0B1A2A' />
@@ -154,57 +177,33 @@ export default function CustomModal({
 					<Text style={styles.headerText}>Task details</Text>
 				</View>
 
+				{/* Основний контент */}
 				<ScrollView contentContainerStyle={styles.scrollContainer}>
 					{tasks.length > 0 ? (
 						tasks.map(task => {
-							let formattedDate = 'N/A'
-							if (task.dueDate) {
-								try {
-									if (task.dueDate.seconds) {
-										formattedDate = new Date(
-											task.dueDate.seconds * 1000
-										).toLocaleDateString()
-									} else if (task.dueDate.toDate) {
-										formattedDate = task.dueDate.toDate().toLocaleDateString()
-									} else {
-										formattedDate = new Date(task.dueDate).toLocaleDateString()
-									}
-								} catch (e) {
-									console.warn('Invalid date format:', task.dueDate)
-								}
-							}
-
+							const formattedDate = task.dueDate?.seconds
+								? new Date(task.dueDate.seconds * 1000).toLocaleDateString()
+								: 'N/A'
 							const authorNickname =
 								authorNicknames[task.createdBy] || 'Loading...'
-
 							return (
 								<View key={task.id} style={styles.taskContainer}>
-									{task.title && <Text style={styles.title}>{task.title}</Text>}
-									{task.createdBy && (
-										<Text style={styles.description}>
-											Created by: {authorNickname}
-										</Text>
-									)}
+									<Text style={styles.title}>{task.title}</Text>
+									<Text style={styles.description}>
+										Created by: {authorNickname}
+									</Text>
 									{task.location && (
 										<Text style={styles.description}>
 											Location: {task.location}
 										</Text>
 									)}
-									{task.dueDate && (
-										<Text style={styles.description}>
-											Target Date: {formattedDate}
-										</Text>
-									)}
-									{task.payment && (
-										<Text style={styles.description}>
-											Original bid: {task.payment} USD
-										</Text>
-									)}
-									{task.description && (
-										<Text style={styles.description}>
-											Description: {task.description}
-										</Text>
-									)}
+									<Text style={styles.description}>
+										Target Date: {formattedDate}
+									</Text>
+									<Text style={styles.description}>
+										Payment: {task.payment} USD
+									</Text>
+									<Text style={styles.description}>{task.description}</Text>
 								</View>
 							)
 						})
@@ -217,7 +216,7 @@ export default function CustomModal({
 					)}
 				</ScrollView>
 
-				{showBidSection && (
+				{isWorker ? (
 					<View style={styles.bidSection}>
 						<View style={styles.bidHeader}>
 							<Text style={styles.bidLabel}>Your Bid Price</Text>
@@ -232,7 +231,7 @@ export default function CustomModal({
 						</View>
 
 						{editing ? (
-							<>
+							<View>
 								<TextInput
 									style={styles.input}
 									keyboardType='numeric'
@@ -253,7 +252,7 @@ export default function CustomModal({
 										<Text style={styles.cancelText}>Cancel</Text>
 									</TouchableOpacity>
 								</View>
-							</>
+							</View>
 						) : (
 							<Text style={styles.bidValue}>${bidPrice}</Text>
 						)}
@@ -263,13 +262,31 @@ export default function CustomModal({
 								styles.submitButton,
 								submitting && styles.submitButtonDisabled,
 							]}
-							onPress={handleSubmitBid} // ⭐️ Викликає оновлену функцію
+							onPress={handleSubmitBid}
 							disabled={submitting}
 						>
 							<Text style={styles.submitText}>
 								{submitting ? 'Submitting...' : 'Submit Bid'}
 							</Text>
 						</TouchableOpacity>
+					</View>
+				) : (
+					/* 🔹 Для адміна — список відгуків */
+					// ✅ CORRECTED CODE
+
+					<View style={styles.bidSection}>
+						<Text style={styles.bidLabel}>Workers who applied:</Text>
+						{bidders && bidders.length > 0 ? (
+							bidders.map((bid, i) => (
+								<View key={i} style={styles.bidderCard}>
+									<Text style={styles.bidderText}>
+										💼 {bid.senderName} — ${bid.bidAmount}
+									</Text>
+								</View>
+							))
+						) : (
+							<Text style={styles.noBidsText}>No bids yet</Text>
+						)}
 					</View>
 				)}
 			</View>
@@ -278,14 +295,11 @@ export default function CustomModal({
 }
 
 const styles = StyleSheet.create({
-	fullScreenContainer: {
-		flex: 1,
-		backgroundColor: '#F9FAFB',
-	},
+	fullScreenContainer: { flex: 1, backgroundColor: '#F9FAFB' },
 	header: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		paddingTop: 50, // Збільшено для SafeArea (можливо)
+		paddingTop: 50,
 		paddingBottom: 20,
 		paddingHorizontal: 16,
 		backgroundColor: '#fff',
@@ -293,18 +307,9 @@ const styles = StyleSheet.create({
 		borderBottomColor: '#E5E7EB',
 		elevation: 3,
 	},
-	backButton: {
-		marginRight: 12,
-	},
-	headerText: {
-		fontSize: 18,
-		fontWeight: '600',
-		color: '#0B1A2A',
-	},
-	scrollContainer: {
-		padding: 16,
-		paddingBottom: 140,
-	},
+	backButton: { marginRight: 12 },
+	headerText: { fontSize: 18, fontWeight: '600', color: '#0B1A2A' },
+	scrollContainer: { padding: 16, paddingBottom: 140 },
 	taskContainer: {
 		backgroundColor: '#fff',
 		borderRadius: 12,
@@ -315,18 +320,8 @@ const styles = StyleSheet.create({
 		shadowRadius: 4,
 		elevation: 2,
 	},
-	description: {
-		marginTop: 15,
-		color: '#4f4c4cff',
-		lineHeight: 25,
-		fontSize: 18,
-	},
-	title: {
-		marginBottom: 10,
-		fontSize: 24,
-		color: '#070606ff',
-		fontStyle: 'italic',
-	},
+	description: { marginTop: 10, color: '#333', lineHeight: 22, fontSize: 16 },
+	title: { marginBottom: 10, fontSize: 24, fontWeight: 'bold', color: '#000' },
 	messageText: {
 		textAlign: 'center',
 		color: '#888',
@@ -348,6 +343,7 @@ const styles = StyleSheet.create({
 		color: '#fff',
 		fontSize: 18,
 		fontWeight: '600',
+		marginBottom: 10,
 	},
 	editButton: {
 		flexDirection: 'row',
@@ -357,11 +353,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 12,
 		borderRadius: 10,
 	},
-	editText: {
-		marginLeft: 5,
-		color: '#000',
-		fontWeight: '500',
-	},
+	editText: { marginLeft: 5, color: '#000', fontWeight: '500' },
 	bidValue: {
 		fontSize: 30,
 		color: '#1DFE79',
@@ -383,25 +375,13 @@ const styles = StyleSheet.create({
 		borderRadius: 12,
 		alignItems: 'center',
 		marginTop: 10,
-		shadowColor: '#1DFE79',
-		shadowOpacity: 0.4,
-		shadowOffset: { width: 0, height: 4 },
-		shadowRadius: 8,
 	},
-	submitButtonDisabled: {
-		backgroundColor: '#0a7d3e',
-		opacity: 0.6,
-	},
-	submitText: {
-		fontSize: 18,
-		fontWeight: '600',
-		color: '#000',
-	},
+	submitButtonDisabled: { backgroundColor: '#0a7d3e', opacity: 0.6 },
+	submitText: { fontSize: 18, fontWeight: '600', color: '#000' },
 	controlButtonContainer: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		marginTop: 10,
-		marginBottom: 10,
 	},
 	saveButton: {
 		flex: 1,
@@ -411,11 +391,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		marginRight: 8,
 	},
-	saveText: {
-		fontSize: 16,
-		fontWeight: '600',
-		color: '#000',
-	},
+	saveText: { fontSize: 16, fontWeight: '600', color: '#000' },
 	cancelButton: {
 		flex: 1,
 		backgroundColor: '#A9A9A9',
@@ -424,9 +400,13 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		marginLeft: 8,
 	},
-	cancelText: {
-		fontSize: 16,
-		fontWeight: '600',
-		color: '#fff',
+	cancelText: { fontSize: 16, fontWeight: '600', color: '#fff' },
+	bidderCard: {
+		backgroundColor: '#fff',
+		padding: 12,
+		borderRadius: 10,
+		marginBottom: 10,
 	},
+	bidderText: { fontSize: 16, color: '#000' },
+	noBidsText: { color: '#aaa', fontStyle: 'italic', marginTop: 10 },
 })

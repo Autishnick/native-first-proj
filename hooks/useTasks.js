@@ -1,5 +1,6 @@
 import {
 	addDoc,
+	arrayUnion,
 	collection,
 	doc,
 	onSnapshot,
@@ -9,9 +10,8 @@ import {
 	updateDoc,
 } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
-import { auth, db } from '../src/firebase/config' // Переконайтеся, що шлях правильний
-
-export function useTasks() {
+import { auth, db } from '../src/firebase/config'
+export const useTasks = () => {
 	const [tasks, setTasks] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(null)
@@ -33,12 +33,12 @@ export function useTasks() {
 						description: data.description || '',
 						category: data.category || 'General',
 						payment: data.payment || 0,
-						locationName: data.locationName || 'Не вказано',
+						location: data.location || '',
+
 						address: data.address || '',
 						status: data.status || 'available',
 						createdBy: data.createdBy || null,
 						assignedTo: data.assignedTo || null,
-						// createdAt та dueDate є об'єктами Timestamp з Firebase
 						createdAt: data.createdAt || Timestamp.now(),
 						dueDate: data.dueDate || Timestamp.now(),
 					}
@@ -56,6 +56,17 @@ export function useTasks() {
 		// Відписуємося від слухача при демонтажі компонента
 		return () => unsubscribe()
 	}, [])
+	const addBid = async (taskId, bid) => {
+		const taskRef = doc(db, 'tasks', taskId)
+		await updateDoc(taskRef, {
+			bids: arrayUnion({
+				workerId: auth.currentUser.uid,
+				workerName: bid.workerName,
+				bidAmount: bid.bidAmount,
+				createdAt: Timestamp.now(),
+			}),
+		})
+	}
 	const createTask = async taskData => {
 		const currentUserId = auth.currentUser?.uid
 		if (!currentUserId) throw new Error('User is not authenticated.')
@@ -92,5 +103,5 @@ export function useTasks() {
 		})
 	}
 
-	return { tasks, loading, error, createTask, takeTask, completeTask }
+	return { tasks, loading, error, createTask, takeTask, completeTask, addBid }
 }
