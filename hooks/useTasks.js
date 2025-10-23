@@ -17,10 +17,8 @@ export const useTasks = () => {
 	const [error, setError] = useState(null)
 
 	useEffect(() => {
-		// Створюємо запит до колекції 'tasks', сортуючи за датою виконання
 		const q = query(collection(db, 'tasks'), orderBy('dueDate', 'asc'))
 
-		// onSnapshot слухає зміни в реальному часі
 		const unsubscribe = onSnapshot(
 			q,
 			snapshot => {
@@ -28,13 +26,11 @@ export const useTasks = () => {
 					const data = doc.data()
 					return {
 						id: doc.id,
-						// Надаємо значення за замовчуванням для кожного поля, щоб уникнути помилок
 						title: data.title || 'Без назви',
 						description: data.description || '',
 						category: data.category || 'General',
 						payment: data.payment || 0,
 						location: data.location || '',
-
 						address: data.address || '',
 						status: data.status || 'available',
 						createdBy: data.createdBy || null,
@@ -53,7 +49,6 @@ export const useTasks = () => {
 			}
 		)
 
-		// Відписуємося від слухача при демонтажі компонента
 		return () => unsubscribe()
 	}, [])
 	const addBid = async (taskId, bid) => {
@@ -76,11 +71,8 @@ export const useTasks = () => {
 			createdBy: currentUserId,
 			status: 'available',
 			assignedTo: null,
-			createdAt: Timestamp.now(), // Використовуємо Timestamp з Firebase
+			createdAt: Timestamp.now(),
 
-			// ⭐️ ВИПРАВЛЕННЯ:
-			// Додаємо 'dueDate' за замовчуванням, якщо воно не надано.
-			// Тепер запит 'orderBy('dueDate')' буде включати цей документ.
 			dueDate: taskData.dueDate || Timestamp.now(),
 		})
 	}

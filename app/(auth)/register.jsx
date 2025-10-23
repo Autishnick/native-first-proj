@@ -3,6 +3,7 @@ import { useState } from 'react'
 import {
 	ActivityIndicator,
 	Alert,
+	StatusBar,
 	StyleSheet,
 	Text,
 	TextInput,
@@ -11,6 +12,45 @@ import {
 } from 'react-native'
 import AppHeader from '../../components/modules/Header'
 import { useAuth } from '../../hooks/useAuth'
+
+const COLORS = {
+	background: '#1A202C',
+	card: '#2D3748',
+	textPrimary: '#FFFFFF',
+	textSecondary: '#9CA3AF',
+	accentGreen: '#34D399',
+	buttonTextDark: '#1A202C',
+	border: '#4A5568',
+}
+
+const RoleButton = ({ title, roleValue, currentRole, onSelect }) => (
+	<TouchableOpacity
+		style={[
+			styles.roleButton,
+			{
+				borderColor:
+					currentRole === roleValue ? COLORS.accentGreen : COLORS.border,
+				backgroundColor:
+					currentRole === roleValue ? `${COLORS.accentGreen}15` : 'transparent',
+			},
+		]}
+		onPress={() => onSelect(roleValue)}
+	>
+		<Text
+			style={[
+				styles.roleButtonText,
+				{
+					color:
+						currentRole === roleValue
+							? COLORS.accentGreen
+							: COLORS.textSecondary,
+				},
+			]}
+		>
+			{title}
+		</Text>
+	</TouchableOpacity>
+)
 
 export default function RegisterScreen() {
 	const [email, setEmail] = useState('')
@@ -28,14 +68,12 @@ export default function RegisterScreen() {
 		console.log('Display Name:', displayName)
 		console.log('Role:', role)
 
-		// 1. Check if all fields are filled
 		if (!email || !password || !confPassword || !displayName) {
 			console.log('❌ Validation failed: Missing fields')
 			Alert.alert('Error', 'Please fill in all fields.')
 			return
 		}
 
-		// 2. CRITICAL CHECK: Password confirmation
 		if (password !== confPassword) {
 			console.log('❌ Validation failed: Passwords do not match')
 			Alert.alert('Error', 'Passwords do not match. Please try again.')
@@ -48,7 +86,6 @@ export default function RegisterScreen() {
 			await register(email, password, role, displayName)
 			console.log('✅ Registration successful!')
 
-			// Автоматично переходимо на головний екран без Alert
 			router.replace('/(main)')
 		} catch (error) {
 			console.error('❌ Registration failed:', error)
@@ -67,6 +104,7 @@ export default function RegisterScreen() {
 
 	return (
 		<>
+			<StatusBar barStyle='light-content' />
 			<AppHeader />
 
 			<View style={styles.container}>
@@ -75,12 +113,14 @@ export default function RegisterScreen() {
 				<TextInput
 					style={styles.input}
 					placeholder='Display Name'
+					placeholderTextColor={COLORS.textSecondary}
 					value={displayName}
 					onChangeText={setDisplayName}
 				/>
 				<TextInput
 					style={styles.input}
 					placeholder='Email'
+					placeholderTextColor={COLORS.textSecondary}
 					value={email}
 					onChangeText={setEmail}
 					keyboardType='email-address'
@@ -89,6 +129,7 @@ export default function RegisterScreen() {
 				<TextInput
 					style={styles.input}
 					placeholder='Password'
+					placeholderTextColor={COLORS.textSecondary}
 					value={password}
 					onChangeText={setPassword}
 					secureTextEntry
@@ -97,6 +138,7 @@ export default function RegisterScreen() {
 				<TextInput
 					style={styles.input}
 					placeholder='Confirm Password'
+					placeholderTextColor={COLORS.textSecondary}
 					value={confPassword}
 					onChangeText={setConfPassword}
 					secureTextEntry
@@ -109,21 +151,19 @@ export default function RegisterScreen() {
 						roleValue='worker'
 						currentRole={role}
 						onSelect={setRole}
-						color='#28A745'
 					/>
 					<RoleButton
 						title='Employer (Customer)'
 						roleValue='employer'
 						currentRole={role}
 						onSelect={setRole}
-						color='#007AFF'
 					/>
 				</View>
 
 				{isLoading ? (
 					<ActivityIndicator
 						size='large'
-						color='#007AFF'
+						color={COLORS.accentGreen}
 						style={{ marginTop: 20 }}
 					/>
 				) : (
@@ -136,7 +176,7 @@ export default function RegisterScreen() {
 				)}
 
 				<View style={styles.linkContainer}>
-					<Text>Already have an account? </Text>
+					<Text style={styles.secondaryText}>Already have an account? </Text>
 					<TouchableOpacity onPress={() => router.push('/login')}>
 						<Text style={styles.link}>Login</Text>
 					</TouchableOpacity>
@@ -146,63 +186,43 @@ export default function RegisterScreen() {
 	)
 }
 
-const RoleButton = ({ title, roleValue, currentRole, onSelect, color }) => (
-	<TouchableOpacity
-		style={[
-			styles.roleButton,
-			{
-				borderColor: currentRole === roleValue ? color : '#ccc',
-				backgroundColor:
-					currentRole === roleValue ? `${color}15` : 'transparent',
-			},
-		]}
-		onPress={() => onSelect(roleValue)}
-	>
-		<Text
-			style={[
-				styles.roleButtonText,
-				{ color: currentRole === roleValue ? color : '#555' },
-			]}
-		>
-			{title}
-		</Text>
-	</TouchableOpacity>
-)
-
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		padding: 25,
 		justifyContent: 'center',
-		backgroundColor: '#fff',
+		backgroundColor: COLORS.background,
 	},
 	header: {
 		fontSize: 28,
 		fontWeight: 'bold',
 		marginBottom: 30,
 		textAlign: 'center',
-		color: '#333',
+		color: COLORS.textPrimary,
 	},
 	input: {
 		height: 50,
-		borderColor: '#ccc',
+		borderColor: COLORS.border,
 		borderWidth: 1,
 		marginBottom: 15,
 		paddingHorizontal: 15,
 		borderRadius: 8,
-		backgroundColor: '#f9f9f9',
+		backgroundColor: COLORS.card,
+		color: COLORS.textPrimary,
+		fontSize: 16,
 	},
 	roleLabel: {
 		fontSize: 16,
 		marginTop: 10,
 		marginBottom: 8,
-		color: '#555',
+		color: COLORS.textPrimary,
 		fontWeight: '500',
 	},
 	roleSelector: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		marginBottom: 20,
+		marginHorizontal: -5,
 	},
 	roleButton: {
 		flex: 1,
@@ -214,16 +234,17 @@ const styles = StyleSheet.create({
 	},
 	roleButtonText: {
 		fontWeight: 'bold',
+		fontSize: 14,
 	},
 	registerButton: {
-		backgroundColor: 'orange',
+		backgroundColor: COLORS.accentGreen,
 		padding: 15,
 		borderRadius: 8,
 		alignItems: 'center',
 		marginTop: 10,
 	},
 	registerButtonText: {
-		color: 'white',
+		color: COLORS.buttonTextDark,
 		fontSize: 18,
 		fontWeight: 'bold',
 	},
@@ -232,8 +253,13 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		marginTop: 20,
 	},
+	secondaryText: {
+		color: COLORS.textSecondary,
+		fontSize: 16,
+	},
 	link: {
-		color: '#007AFF',
+		color: COLORS.accentGreen,
 		fontWeight: 'bold',
+		fontSize: 16,
 	},
 })

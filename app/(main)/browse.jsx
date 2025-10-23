@@ -4,9 +4,9 @@ import {
 	ActivityIndicator,
 	Alert,
 	ScrollView,
+	StatusBar,
 	StyleSheet,
 	Text,
-	TouchableOpacity,
 	View,
 } from 'react-native'
 import CustomModal from '../../components/modules/ModalTaskDetails'
@@ -16,12 +16,22 @@ import { useTasks } from '../../hooks/useTasks'
 import { CATEGORIES_DATA } from '../../utils/CategoriesData'
 import FilterSection from '../../utils/FilterSection'
 import { createNotification } from '../../utils/firebaseUtils'
+
+const COLORS = {
+	background: '#1A202C',
+	card: '#2D3748',
+	textPrimary: '#FFFFFF',
+	textSecondary: '#9CA3AF',
+	accentGreen: '#34D399',
+	buttonTextDark: '#1A202C',
+	border: '#4A5568',
+}
+
 export default function BrowseScreen() {
 	const { categoryName } = useLocalSearchParams()
 	const [modalVisible, setModalVisible] = useState(false)
 	const [selectedTask, setSelectedTask] = useState(null)
 
-	// ⭐️ Отримання даних поточного користувача
 	const { userId, userName } = useAuth()
 
 	const CATEGORY_NAMES = CATEGORIES_DATA.map(item => item.name)
@@ -89,7 +99,6 @@ export default function BrowseScreen() {
 		setModalVisible(true)
 	}
 
-	// ⭐️ ФУНКЦІЯ ОБРОБКИ СТАВКИ ТА НАДСИЛАННЯ ПОВІДОМЛЕННЯ НА FIREBASE
 	const handleBidSubmission = async notificationData => {
 		if (!userId) {
 			Alert.alert('Error', 'You must be logged in to place a bid.')
@@ -105,7 +114,7 @@ export default function BrowseScreen() {
 			const dataToSend = {
 				...notificationData,
 				senderId: userId,
-				senderName: userName || 'Anonymous User', // Забезпечуємо наявність імені
+				senderName: userName || 'Anonymous User',
 			}
 
 			await createNotification(dataToSend)
@@ -121,8 +130,8 @@ export default function BrowseScreen() {
 	if (loading) {
 		return (
 			<View style={styles.centered}>
-				<ActivityIndicator size='large' color='#007AFF' />
-				<Text>Loading tasks...</Text>
+				<ActivityIndicator size='large' color={COLORS.accentGreen} />
+				<Text style={styles.loadingText}>Loading tasks...</Text>
 			</View>
 		)
 	}
@@ -136,9 +145,26 @@ export default function BrowseScreen() {
 			</View>
 		)
 	}
+	const renderTaskContent = () => {
+		if (filteredAndSortedTasks.length > 0) {
+			return filteredAndSortedTasks.map(task => (
+				<TaskItem
+					key={task.id}
+					task={task}
+					onPress={() => handleOpenTaskDetails(task)}
+				/>
+			))
+		}
 
+		const message = searchQuery.trim()
+			? `No tasks found for "${searchQuery}"`
+			: 'No tasks found for this selection.'
+
+		return <Text style={styles.messageText}>{message}</Text>
+	}
 	return (
 		<View style={styles.container}>
+			<StatusBar barStyle='light-content' />
 			<CustomModal
 				visible={modalVisible}
 				onClose={() => setModalVisible(false)}
@@ -160,25 +186,8 @@ export default function BrowseScreen() {
 				onSearchChange={setSearchQuery}
 			/>
 
-			{/* 🔹 Список тасків */}
-			<ScrollView>
-				{filteredAndSortedTasks.length > 0 ? (
-					filteredAndSortedTasks.map(task => (
-						<TouchableOpacity
-							key={task.id}
-							activeOpacity={0.8}
-							onPress={() => handleOpenTaskDetails(task)}
-						>
-							<TaskItem task={task} />
-						</TouchableOpacity>
-					))
-				) : (
-					<Text style={styles.messageText}>
-						{searchQuery.trim()
-							? `No tasks found for "${searchQuery}"`
-							: 'No tasks found for this selection.'}
-					</Text>
-				)}
+			<ScrollView contentContainerStyle={styles.scrollContent}>
+				{renderTaskContent()}
 			</ScrollView>
 		</View>
 	)
@@ -187,12 +196,17 @@ export default function BrowseScreen() {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#fff',
+		backgroundColor: COLORS.background,
 	},
 	centered: {
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
+		backgroundColor: COLORS.background,
+	},
+	loadingText: {
+		color: COLORS.textPrimary,
+		marginTop: 10,
 	},
 	errorText: {
 		color: 'red',
@@ -202,6 +216,10 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		marginTop: 50,
 		fontSize: 16,
-		color: '#888',
+		color: COLORS.textSecondary,
+	},
+	scrollContent: {
+		paddingBottom: 20,
+		paddingHorizontal: 15,
 	},
 })

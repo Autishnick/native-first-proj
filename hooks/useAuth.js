@@ -18,7 +18,6 @@ export const useAuth = () => {
 	const [profile, setProfile] = useState(null)
 	const [loading, setLoading] = useState(true)
 
-	// --- Завантаження профілю користувача з Firestore ---
 	const fetchUserProfile = async uid => {
 		console.log('📖 Fetching profile for UID:', uid)
 		if (!uid) {
@@ -41,7 +40,6 @@ export const useAuth = () => {
 		}
 	}
 
-	// --- Слухач змін авторизації ---
 	useEffect(() => {
 		console.log('🔄 Setting up auth listener...')
 		const unsubscribe = onAuthStateChanged(auth, async authUser => {
@@ -57,7 +55,6 @@ export const useAuth = () => {
 		return () => unsubscribe()
 	}, [])
 
-	// --- Реєстрація ---
 	const register = async (email, password, role, displayName = 'User') => {
 		try {
 			console.log('🚀 Registering:', email)
@@ -68,7 +65,6 @@ export const useAuth = () => {
 			)
 			const authUser = userCredential.user
 
-			// Оновлення профілю в Firebase Auth (для displayName)
 			await updateProfile(authUser, { displayName })
 
 			const userDocRef = doc(db, 'users', authUser.uid)
@@ -96,7 +92,6 @@ export const useAuth = () => {
 		}
 	}
 
-	// --- Вхід ---
 	const login = async (email, password) => {
 		console.log('🔑 Attempting login:', email)
 		try {
@@ -123,7 +118,6 @@ export const useAuth = () => {
 		}
 	}
 
-	// --- Вихід ---
 	const logout = async () => {
 		console.log('👋 Logging out...')
 		try {
@@ -137,7 +131,6 @@ export const useAuth = () => {
 		}
 	}
 
-	// --- Оновлення профілю ---
 	const updateUserProfile = async newProfileData => {
 		if (!user) throw new Error('You must be logged in to update your profile.')
 
@@ -158,13 +151,11 @@ export const useAuth = () => {
 		}
 	}
 
-	// --- Зміна пароля з перевіркою поточного ---
 	const changeUserPassword = async (currentPassword, newPassword) => {
 		if (!auth.currentUser) throw new Error('No authenticated user found.')
 
 		console.log('🔒 Attempting to change password...')
 		try {
-			// 1️⃣ Re-authenticate user
 			const credential = EmailAuthProvider.credential(
 				auth.currentUser.email,
 				currentPassword
@@ -172,7 +163,6 @@ export const useAuth = () => {
 			await reauthenticateWithCredential(auth.currentUser, credential)
 			console.log('✅ Re-authentication successful.')
 
-			// 2️⃣ Update password
 			await updatePassword(auth.currentUser, newPassword)
 			console.log('✅ Password updated successfully.')
 			return true
@@ -192,7 +182,6 @@ export const useAuth = () => {
 	}
 
 	const userId = user?.uid || null
-	// Використовуємо displayName з профілю Firestore, якщо є, інакше з Auth
 	const userName = profile?.displayName || user?.displayName || null
 
 	return {

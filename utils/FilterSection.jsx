@@ -7,6 +7,17 @@ import {
 	View,
 } from 'react-native'
 
+const COLORS = {
+	background: '#1A202C',
+	card: '#2D3748',
+	textPrimary: '#FFFFFF',
+	textSecondary: '#9CA3AF',
+	accentGreen: '#34D399',
+	accentRed: '#F56565',
+	buttonTextDark: '#1A202C',
+	border: '#4A5568',
+}
+
 export default function FilterSection({
 	currentSort,
 	onSortChange,
@@ -39,7 +50,7 @@ export default function FilterSection({
 					<TextInput
 						style={styles.searchInput}
 						placeholder='Search tasks...'
-						placeholderTextColor='#999'
+						placeholderTextColor={COLORS.textSecondary}
 						value={searchQuery}
 						onChangeText={onSearchChange}
 						returnKeyType='search'
@@ -105,7 +116,6 @@ export default function FilterSection({
 						</Text>
 					</TouchableOpacity>
 
-					{/* Кнопка зміни напрямку сортування */}
 					{onSortOrderChange && (
 						<TouchableOpacity
 							style={styles.orderButton}
@@ -118,7 +128,6 @@ export default function FilterSection({
 					)}
 				</View>
 
-				{/* Кнопка Reset */}
 				{onReset && (
 					<TouchableOpacity style={styles.resetButton} onPress={onReset}>
 						<Text style={styles.resetButtonText}>Reset</Text>
@@ -126,7 +135,6 @@ export default function FilterSection({
 				)}
 			</View>
 
-			{/* Категорії в горизонтальному скролі */}
 			<ScrollView
 				horizontal
 				showsHorizontalScrollIndicator={false}
@@ -175,9 +183,9 @@ export default function FilterSection({
 
 const styles = StyleSheet.create({
 	container: {
-		backgroundColor: '#fff',
+		backgroundColor: COLORS.card,
 		borderBottomWidth: 1,
-		borderBottomColor: '#eee',
+		borderBottomColor: COLORS.border,
 	},
 
 	searchContainer: {
@@ -186,19 +194,22 @@ const styles = StyleSheet.create({
 	searchInputWrapper: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		backgroundColor: '#f5f5f5',
+		backgroundColor: COLORS.background,
 		borderRadius: 10,
 		paddingHorizontal: 12,
 		height: 44,
+		borderWidth: 1,
+		borderColor: COLORS.border,
 	},
 	searchIcon: {
 		fontSize: 18,
 		marginRight: 8,
+		color: COLORS.textSecondary,
 	},
 	searchInput: {
 		flex: 1,
 		fontSize: 15,
-		color: '#333',
+		color: COLORS.textPrimary,
 		padding: 0,
 	},
 	clearButton: {
@@ -207,11 +218,10 @@ const styles = StyleSheet.create({
 	},
 	clearButtonText: {
 		fontSize: 18,
-		color: '#999',
+		color: COLORS.textSecondary,
 		fontWeight: '600',
 	},
 
-	// Верхня панель з сортуванням
 	filterBar: {
 		flexDirection: 'row',
 		alignItems: 'center',
@@ -221,64 +231,64 @@ const styles = StyleSheet.create({
 		gap: 8,
 	},
 
-	// Контейнер сортування
 	sortContainer: {
 		flexDirection: 'row',
 		gap: 6,
 		flex: 1,
 	},
 
-	// Кнопки сортування
 	sortButton: {
 		paddingHorizontal: 12,
 		paddingVertical: 8,
 		borderRadius: 8,
-		backgroundColor: '#f0f0f0',
+		backgroundColor: COLORS.background,
 		minWidth: 55,
 		alignItems: 'center',
+		borderWidth: 1,
+		borderColor: COLORS.border,
 	},
 	sortButtonActive: {
-		backgroundColor: '#007AFF',
+		backgroundColor: COLORS.accentGreen,
+		borderColor: COLORS.accentGreen,
 	},
 	sortButtonText: {
 		fontSize: 13,
-		color: '#666',
+		color: COLORS.textSecondary,
 		fontWeight: '500',
 	},
 	sortButtonTextActive: {
-		color: '#fff',
+		color: COLORS.buttonTextDark,
 		fontWeight: '600',
 	},
 
-	// Кнопка зміни напрямку (↑↓)
 	orderButton: {
-		backgroundColor: '#f0f0f0',
+		backgroundColor: COLORS.background,
 		width: 36,
 		height: 36,
 		borderRadius: 8,
 		justifyContent: 'center',
 		alignItems: 'center',
+		borderWidth: 1,
+		borderColor: COLORS.border,
 	},
 	orderButtonText: {
 		fontSize: 20,
 		fontWeight: 'bold',
-		color: '#007AFF',
+		color: COLORS.accentGreen,
 	},
 
-	// Кнопка Reset
 	resetButton: {
-		backgroundColor: '#FF3B30',
+		backgroundColor: COLORS.accentRed,
 		paddingHorizontal: 14,
 		paddingVertical: 8,
 		borderRadius: 8,
 	},
 	resetButtonText: {
-		color: '#fff',
+		color: COLORS.textPrimary,
 		fontSize: 13,
 		fontWeight: '600',
 	},
 
-	// Категорії в горизонтальному рядку
 	categoriesContainer: {
 		paddingHorizontal: 12,
 		paddingVertical: 10,
@@ -288,21 +298,21 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 16,
 		paddingVertical: 8,
 		borderRadius: 20,
-		backgroundColor: '#f0f0f0',
+		backgroundColor: COLORS.background,
 		borderWidth: 1,
-		borderColor: '#e0e0e0',
+		borderColor: COLORS.border,
 	},
 	categoryChipActive: {
-		backgroundColor: '#007AFF',
-		borderColor: '#007AFF',
+		backgroundColor: COLORS.accentGreen,
+		borderColor: COLORS.accentGreen,
 	},
 	categoryChipText: {
 		fontSize: 14,
-		color: '#666',
+		color: COLORS.textSecondary,
 		fontWeight: '500',
 	},
 	categoryChipTextActive: {
-		color: '#fff',
+		color: COLORS.buttonTextDark,
 		fontWeight: '600',
 	},
 })

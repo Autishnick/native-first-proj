@@ -1,12 +1,16 @@
 import { Ionicons } from '@expo/vector-icons'
 import { doc, getDoc } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { useAuth } from '../../hooks/useAuth'
 import { db } from '../../src/firebase/config'
 
-export default function TaskItem({ task }) {
+export default function TaskItem({ task, onPress }) {
 	const [authorNickname, setAuthorNickname] = useState('Loading...')
+	const { isWorker, userId } = useAuth()
 	const dueDate = new Date(task.dueDate.seconds * 1000).toLocaleString()
+	const isAssigned = !!task.assignedTo
+	const isMyTask = task.assignedTo === userId
 
 	useEffect(() => {
 		const fetchAuthorNickname = async () => {
@@ -23,35 +27,104 @@ export default function TaskItem({ task }) {
 			}
 		}
 
-		if (task.createdBy) {
-			fetchAuthorNickname()
-		}
+		if (task.createdBy) fetchAuthorNickname()
 	}, [task.createdBy])
 
+	const handlePress = () => {
+		if (isWorker && isAssigned && !isMyTask) {
+			Alert.alert(
+				'Task Unavailable',
+				'This task is already assigned to someone else.'
+			)
+		} else {
+			onPress?.()
+		}
+	}
+
+	const shouldShowDisabled = isWorker && isAssigned && !isMyTask
+
 	return (
-		<View style={styles.card}>
+		<TouchableOpacity
+			activeOpacity={0.7}
+			onPress={handlePress}
+			style={[styles.card, shouldShowDisabled && styles.disabledCard]}
+		>
 			<View style={styles.row}>
 				<View style={styles.textContainer}>
-					<Text style={styles.title}>{task.title}</Text>
-					<Text style={styles.description}>{task.description}</Text>
+					<Text
+						style={[styles.title, shouldShowDisabled && styles.disabledText]}
+					>
+						{task.title}
+					</Text>
+					<Text
+						style={[
+							styles.description,
+							shouldShowDisabled && styles.disabledText,
+						]}
+					>
+						{task.description}
+					</Text>
 
 					{task.location && task.location.trim() !== '' && (
-						<Text style={styles.info}>📍 Location: {task.location}</Text>
+						<Text
+							style={[styles.info, shouldShowDisabled && styles.disabledText]}
+						>
+							📍 Location: {task.location}
+						</Text>
 					)}
 
 					{task.address && task.address.trim() !== '' && (
-						<Text style={styles.info}>🏠 Address: {task.address}</Text>
+						<Text
+							style={[styles.info, shouldShowDisabled && styles.disabledText]}
+						>
+							🏠 Address: {task.address}
+						</Text>
 					)}
 
-					<Text style={styles.info}>💰 Payment: ${task.payment}</Text>
-					<Text style={styles.info}>📅 Created: {dueDate}</Text>
-					<Text style={styles.info}>👤 Author: {authorNickname}</Text>
+					<Text
+						style={[styles.info, shouldShowDisabled && styles.disabledText]}
+					>
+						💰 Payment: ${task.payment}
+					</Text>
+					<Text
+						style={[styles.info, shouldShowDisabled && styles.disabledText]}
+					>
+						📅 Created: {dueDate}
+					</Text>
+					<Text
+						style={[styles.info, shouldShowDisabled && styles.disabledText]}
+					>
+						👤 Author: {authorNickname}
+					</Text>
+
+					{isAssigned && (
+						<Text
+							style={[
+								styles.info,
+								{
+									color: shouldShowDisabled ? '#888' : '#4CAF50',
+									fontWeight: '600',
+								},
+							]}
+						>
+							{isMyTask
+								? '✅ Your task'
+								: !isWorker
+								? '✅ Task is assigned'
+								: '🔒 Assigned to someone else'}
+						</Text>
+					)}
 				</View>
+
 				<View style={styles.avatarContainer}>
-					<Ionicons name='person-circle-outline' size={60} color='#666' />
+					<Ionicons
+						name='person-circle-outline'
+						size={60}
+						color={shouldShowDisabled ? '#aaa' : '#666'}
+					/>
 				</View>
 			</View>
-		</View>
+		</TouchableOpacity>
 	)
 }
 
@@ -66,6 +139,10 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.1,
 		shadowRadius: 10,
 		elevation: 3,
+	},
+	disabledCard: {
+		backgroundColor: '#f0f0f0',
+		opacity: 0.9,
 	},
 	row: {
 		flexDirection: 'row',
@@ -92,5 +169,8 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		color: '#666',
 		marginBottom: 2,
+	},
+	disabledText: {
+		color: '#999',
 	},
 })

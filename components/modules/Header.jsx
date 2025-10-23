@@ -23,7 +23,6 @@ export default function AppHeader() {
 		try {
 			await logout()
 			setConfirmVisible(false)
-			// Redirect to home page or a public page after logout
 			router.replace('/')
 		} catch (error) {
 			console.error('❌ Logout failed:', error)
@@ -137,13 +136,11 @@ const styles = StyleSheet.create({
 		color: '#2ECC71',
 		fontSize: 22,
 		fontWeight: 'bold',
-		flex: 1, // Allows the logo to take up available space
+		flex: 1,
 	},
-	// New container for Auth buttons to align them better
 	authButtonsContainer: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		// Added gap between buttons (can adjust/remove if not needed)
 		gap: 10,
 	},
 	authButton: {
@@ -161,7 +158,6 @@ const styles = StyleSheet.create({
 	userInfo: {
 		alignItems: 'flex-end',
 		marginHorizontal: 10,
-		// Added flexGrow to push logout button to the right if profile exists
 		flexGrow: 1,
 	},
 	userName: {
@@ -186,11 +182,10 @@ const styles = StyleSheet.create({
 		fontWeight: '500',
 	},
 	homeButtonText: {
-		color: '#2ECC71', // Matching bright green color
+		color: '#2ECC71',
 		fontSize: 16,
 		fontWeight: '500',
 	},
-	// --- Modal styles (as per your original code) ---
 	modalOverlay: {
 		flex: 1,
 		backgroundColor: 'rgba(0,0,0,0.6)',

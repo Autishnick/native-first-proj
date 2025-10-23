@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
 	ActivityIndicator,
 	FlatList,
+	StatusBar,
 	StyleSheet,
 	Text,
 	TouchableOpacity,
@@ -12,6 +13,17 @@ import {
 	markNotificationAsRead,
 	subscribeToNotifications,
 } from '../../utils/firebaseUtils'
+
+const COLORS = {
+	background: '#1A202C',
+	card: '#2D3748',
+	textPrimary: '#FFFFFF',
+	textSecondary: '#9CA3AF',
+	accentGreen: '#34D399',
+	unreadBackground: '#374151',
+	readBackground: '#2D3748',
+	border: '#4A5568',
+}
 
 export default function NotificationsScreen() {
 	const { userId } = useAuth()
@@ -37,15 +49,14 @@ export default function NotificationsScreen() {
 			}
 		)
 
-		return () => unsubscribe() // Відписка при демонтажі
+		return () => unsubscribe()
 	}, [userId])
 
 	const handlePress = async item => {
-		// 1. Позначити як прочитане, якщо ще не прочитане
 		if (!item.read) {
 			await markNotificationAsRead(item.id)
 		}
-		// 2. ⚠️ Тут має бути логіка переходу до TaskDetailScreen (використовуючи Expo Router)
+		// 2. ⚠️ Logic to navigate to TaskDetailScreen (using Expo Router) should be here
 		// router.push(`/(main)/task/${item.taskId}`);
 	}
 
@@ -68,11 +79,16 @@ export default function NotificationsScreen() {
 	)
 
 	if (loading) {
-		return <ActivityIndicator size='large' style={styles.loading} />
+		return (
+			<View style={styles.loadingContainer}>
+				<ActivityIndicator size='large' color={COLORS.accentGreen} />
+			</View>
+		)
 	}
 
 	return (
 		<View style={styles.container}>
+			<StatusBar barStyle='light-content' />
 			<FlatList
 				data={notifications}
 				renderItem={renderItem}
@@ -86,41 +102,50 @@ export default function NotificationsScreen() {
 }
 
 const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+		backgroundColor: COLORS.background,
+	},
+	loadingContainer: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+		backgroundColor: COLORS.background,
+	},
 	item: {
 		padding: 15,
 		borderBottomWidth: 1,
-		borderBottomColor: '#eee',
+		borderBottomColor: COLORS.border,
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
 	},
 	unread: {
-		backgroundColor: '#e0f7fa', // Світло-блакитний для нових
+		backgroundColor: COLORS.unreadBackground, // Darker card for unread
 	},
 	read: {
-		backgroundColor: '#fff',
+		backgroundColor: COLORS.readBackground, // Standard card background for read
 	},
 	messageText: {
 		flex: 2,
 		fontSize: 16,
+		color: COLORS.textPrimary, // White text
 	},
 	bidAmount: {
 		fontWeight: 'bold',
-		color: '#1DFE79',
+		color: COLORS.accentGreen, // Accent green for bid amount
 		marginHorizontal: 10,
+		fontSize: 16,
 	},
 	timeText: {
 		fontSize: 10,
-		color: '#888',
+		color: COLORS.textSecondary, // Light gray for time
 		marginLeft: 'auto',
-	},
-	loading: {
-		flex: 1,
-		justifyContent: 'center',
 	},
 	emptyText: {
 		textAlign: 'center',
 		marginTop: 50,
-		color: '#888',
+		color: COLORS.textSecondary, // Light gray for empty state
+		fontSize: 16,
 	},
 })

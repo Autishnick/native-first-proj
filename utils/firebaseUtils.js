@@ -10,7 +10,6 @@ import {
 } from 'firebase/firestore'
 import { db } from '../src/firebase/config'
 
-// ⭐️ 1. Функція для створення нового сповіщення (при надсиланні ставки)
 export const createNotification = async ({
 	recipientId,
 	senderId,
@@ -57,10 +56,9 @@ export const subscribeToNotifications = (userId, callback, onError) => {
 			}))
 			console.log(
 				`✅ NOTIFICATIONS: Found ${list.length} documents for user ${userId}.`
-			) // ⭐️ ЛОГ УСПІХУ
+			)
 			callback(list)
 		},
-		// ⭐️ ЛОГ ПОМИЛКИ
 		error => {
 			console.error(
 				'❌ FIREBASE SUBSCRIPTION ERROR (check rules/indexes):',

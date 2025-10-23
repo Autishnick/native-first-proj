@@ -1,17 +1,16 @@
+import { deleteDoc, doc } from 'firebase/firestore'
 import { useMemo, useState } from 'react'
 import {
 	ActivityIndicator,
 	Alert,
 	FlatList,
-	ScrollView,
+	StatusBar,
 	StyleSheet,
 	Text,
 	TextInput,
 	TouchableOpacity,
 	View,
 } from 'react-native'
-// ⭐️ 1. ІМПОРТУЄМО НОВЕ МОДАЛЬНЕ ВІКНО
-import { deleteDoc, doc } from 'firebase/firestore'
 import CreateTaskModal from '../../components/modules/CreateDetailTaskModal'
 import CustomModal from '../../components/modules/ModalTaskDetails'
 import TaskItem from '../../components/ui/TaskItem'
@@ -19,6 +18,17 @@ import { useAuth } from '../../hooks/useAuth'
 import { useTasks } from '../../hooks/useTasks'
 import { db } from '../../src/firebase/config'
 import { createNotification } from '../../utils/firebaseUtils'
+
+const COLORS = {
+	background: '#1A202C',
+	card: '#2D3748',
+	textPrimary: '#FFFFFF',
+	textSecondary: '#9CA3AF',
+	accentGreen: '#34D399',
+	accentRed: '#F56565',
+	buttonTextDark: '#1A202C',
+	border: '#4A5568',
+}
 
 const handleDeleteTask = async taskId => {
 	Alert.alert('Confirm Delete', 'Are you sure you want to delete this task?', [
@@ -40,26 +50,29 @@ const handleDeleteTask = async taskId => {
 }
 
 export default function MyTasksScreen() {
-	// 1. Стани
 	const [activeTab, setActiveTab] = useState('available')
 	const [text, setText] = useState('')
 	const [isSubmitting, setIsSubmitting] = useState(false)
-	// ⭐️ 2. ДОДАЄМО СТАН ДЛЯ НОВОГО МОДАЛЬНОГО ВІКНА
 	const [isDetailedModalVisible, setIsDetailedModalVisible] = useState(false)
 
-	// 2. Отримання даних
 	const { userId, isWorker, loading: authLoading, userName } = useAuth()
 	const { tasks, loading: tasksLoading, error, createTask } = useTasks()
 	const [modalVisible, setModalVisible] = useState(false)
 	const [selectedTask, setSelectedTask] = useState(null)
 
 	const handleOpenTaskDetails = task => {
+		if (isWorker && task.assignedTo && task.assignedTo !== userId) {
+			Alert.alert(
+				'Task Unavailable',
+				'This task is already assigned to someone else.'
+			)
+			return
+		}
 		setSelectedTask(task)
 		setModalVisible(true)
 	}
 
 	const handleBidSubmission = async notificationData => {
-		// ... (ваш код без змін)
 		if (!userId) {
 			Alert.alert('Error', 'You must be logged in to place a bid.')
 			return
@@ -84,7 +97,6 @@ export default function MyTasksScreen() {
 	}
 
 	const handleCreateTask = async () => {
-		// ... (ваш код без змін)
 		if (!text.trim()) {
 			Alert.alert('Error', 'Please describe what you need done.')
 			return
@@ -104,11 +116,16 @@ export default function MyTasksScreen() {
 				category: 'General',
 				payment: 50,
 			}
+			console.log('🔍 Creating quick task:', taskData)
+			console.log('👤 Current user ID:', userId)
+
 			await createTask(taskData)
 			Alert.alert('Success!', 'Your task has been posted.')
 			setText('')
 		} catch (error) {
-			console.error('Error creating task:', error)
+			console.error('❌ Error creating task:', error)
+			console.error('❌ Error code:', error.code)
+			console.error('❌ Error message:', error.message)
 			Alert.alert('Error', 'Failed to create task.')
 		} finally {
 			setIsSubmitting(false)
@@ -128,42 +145,52 @@ export default function MyTasksScreen() {
 				createdByDisplayName: userName || 'Employer',
 			}
 
-			// Викликаємо ту саму функцію 'createTask' з хука
+			console.log('🔍 Creating detailed task:', completeTaskData)
+			console.log('👤 Current user ID:', userId)
+
 			await createTask(completeTaskData)
 
 			Alert.alert('Success!', 'Your detailed task has been posted.')
-			setIsDetailedModalVisible(false) // Закриваємо модальне вікно при успіху
+			setIsDetailedModalVisible(false)
 		} catch (error) {
-			console.error('Error creating detailed task:', error)
-			// Передаємо помилку, щоб модальне вікно могло її обробити
+			console.error('❌ Error creating detailed task:', error)
+			console.error('❌ Error code:', error.code)
+			console.error('❌ Error message:', error.message)
 			throw error
 		}
 	}
 
-	// 3. Фільтрація завдань
 	const filteredTasks = useMemo(() => {
-		// ... (ваш код без змін)
 		if (activeTab === 'taken') {
 			return tasks.filter(task => task.assignedTo === userId)
 		}
-		return tasks
+		return tasks.filter(task => !task.assignedTo)
 	}, [activeTab, tasks, userId])
 
-	// 4. Обробка станів завантаження та ролі
 	const isLoading = authLoading || tasksLoading
 
 	if (isLoading) {
 		return (
 			<View style={styles.centered}>
-				<ActivityIndicator size='large' color='#007AFF' />
+				<ActivityIndicator size='large' color={COLORS.accentGreen} />
 			</View>
 		)
 	}
 
-	// ⭐️ 5. Оновлений блок для НЕ-воркерів (Роботодавців)
+	if (error) {
+		return (
+			<View style={styles.centered}>
+				<Text style={styles.errorText}>
+					Error loading tasks: {error.message}
+				</Text>
+			</View>
+		)
+	}
+
 	if (!isWorker) {
 		return (
 			<View style={styles.centered}>
+				<StatusBar barStyle='light-content' />
 				<CustomModal
 					visible={modalVisible}
 					onClose={() => setModalVisible(false)}
@@ -177,10 +204,11 @@ export default function MyTasksScreen() {
 					<TextInput
 						style={styles.input}
 						placeholder='What do you need done?'
-						placeholderTextColor='#999'
+						placeholderTextColor={COLORS.textSecondary}
 						onChangeText={newText => setText(newText)}
 						value={text}
 						editable={!isSubmitting}
+						color={COLORS.textPrimary}
 					/>
 					<TouchableOpacity
 						style={[
@@ -196,10 +224,9 @@ export default function MyTasksScreen() {
 					</TouchableOpacity>
 				</View>
 
-				{/* ⭐️ НОВА КНОПКА для детального завдання */}
 				<TouchableOpacity
-					style={[styles.quickButton, styles.detailedButton]} // Додаємо новий стиль
-					onPress={() => setIsDetailedModalVisible(true)} // Відкриваємо модалку
+					style={[styles.quickButton, styles.detailedButton]}
+					onPress={() => setIsDetailedModalVisible(true)}
 				>
 					<Text style={styles.quickButtonText}>Create New Detailed Task</Text>
 				</TouchableOpacity>
@@ -209,54 +236,46 @@ export default function MyTasksScreen() {
 					onClose={() => setIsDetailedModalVisible(false)}
 					onSubmit={handleCreateDetailedTask}
 				/>
-				<ScrollView style={{ width: '100%', marginTop: 30 }}>
-					<Text style={styles.myTasksHeader}>
-						My Tasks ({tasks.filter(task => task.createdBy === userId).length})
-					</Text>
 
-					<FlatList
-						data={tasks.filter(task => task.createdBy === userId)}
-						keyExtractor={item => item.id}
-						renderItem={({ item }) => (
-							<View style={styles.myTaskWrapper}>
-								<TouchableOpacity onPress={() => handleOpenTaskDetails(item)}>
-									{/* Використовуємо готовий компонент TaskItem */}
-									<TaskItem task={item} />
-								</TouchableOpacity>
+				<FlatList
+					style={{ width: '100%', marginTop: 30 }}
+					data={tasks.filter(task => task.createdBy === userId)}
+					keyExtractor={item => item.id}
+					ListHeaderComponent={
+						<Text style={styles.myTasksHeader}>
+							My Tasks ({tasks.filter(task => task.createdBy === userId).length}
+							)
+						</Text>
+					}
+					renderItem={({ item }) => (
+						<View style={styles.myTaskWrapper}>
+							<TaskItem
+								task={item}
+								onPress={() => handleOpenTaskDetails(item)}
+							/>
 
-								{/* Кнопка видалення */}
-								<TouchableOpacity
-									style={styles.deleteButton}
-									onPress={() => handleDeleteTask(item.id)}
-								>
-									<Text style={styles.deleteButtonText}>Delete</Text>
-								</TouchableOpacity>
-							</View>
-						)}
-						ListEmptyComponent={
-							<Text style={styles.noTasksText}>
-								You haven't created any tasks yet.
-							</Text>
-						}
-						contentContainerStyle={{ paddingBottom: 20 }}
-					/>
-				</ScrollView>
-			</View>
-		)
-	}
-
-	if (error) {
-		return (
-			<View style={styles.centered}>
-				<Text style={styles.errorText}>
-					Error loading tasks: {error.message}
-				</Text>
+							<TouchableOpacity
+								style={styles.deleteButton}
+								onPress={() => handleDeleteTask(item.id)}
+							>
+								<Text style={styles.deleteButtonText}>Delete</Text>
+							</TouchableOpacity>
+						</View>
+					)}
+					ListEmptyComponent={
+						<Text style={styles.noTasksText}>
+							You haven't created any tasks yet.
+						</Text>
+					}
+					contentContainerStyle={{ paddingBottom: 20 }}
+				/>
 			</View>
 		)
 	}
 
 	return (
 		<View style={styles.container}>
+			<StatusBar barStyle='light-content' />
 			<CustomModal
 				visible={modalVisible}
 				onClose={() => setModalVisible(false)}
@@ -291,7 +310,7 @@ export default function MyTasksScreen() {
 							activeTab === 'available' && styles.activeTabText,
 						]}
 					>
-						Available jobs ({tasks.length})
+						Available jobs ({filteredTasks.length})
 					</Text>
 				</TouchableOpacity>
 			</View>
@@ -300,28 +319,25 @@ export default function MyTasksScreen() {
 				data={filteredTasks}
 				keyExtractor={item => item.id}
 				renderItem={({ item }) => (
-					<TouchableOpacity onPress={() => handleOpenTaskDetails(item)}>
-						<TaskItem task={item} />
-					</TouchableOpacity>
+					<TaskItem task={item} onPress={() => handleOpenTaskDetails(item)} />
 				)}
 				ListEmptyComponent={
 					<Text style={styles.messageText}>
 						{activeTab === 'taken'
-							? "You haven't taken any tasks yet." // ⭐️ Оновлено текст
-							: 'No tasks found.'}
+							? "You haven't taken any tasks yet."
+							: 'No available tasks found.'}
 					</Text>
 				}
-				contentContainerStyle={{ paddingBottom: 20 }}
+				contentContainerStyle={styles.flatListContent}
 			/>
 		</View>
 	)
 }
 
-// ⭐️ 6. ОНОВЛЕНІ СТИЛІ
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#F9FAFB',
+		backgroundColor: COLORS.background,
 	},
 	centered: {
 		flex: 1,
@@ -329,10 +345,10 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		paddingHorizontal: 20,
 		paddingTop: 50,
-		backgroundColor: '#F9FAFB',
+		backgroundColor: COLORS.background,
 	},
 	errorText: {
-		color: 'red',
+		color: COLORS.accentRed,
 		fontSize: 16,
 		textAlign: 'center',
 	},
@@ -340,124 +356,117 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		marginTop: 50,
 		fontSize: 16,
-		color: '#888',
+		color: COLORS.textSecondary,
+		paddingHorizontal: 20,
 	},
 	tabSelector: {
 		flexDirection: 'row',
 		paddingHorizontal: 16,
 		paddingVertical: 12,
-		backgroundColor: '#fff',
+		backgroundColor: COLORS.card,
 		borderBottomWidth: 1,
-		borderBottomColor: '#E5E7EB',
+		borderBottomColor: COLORS.border,
 	},
 	tabButton: {
 		flex: 1,
 		paddingVertical: 10,
 		alignItems: 'center',
-		backgroundColor: '#F3F4F6',
+		backgroundColor: COLORS.background,
 		borderRadius: 8,
 		marginHorizontal: 6,
 		borderWidth: 1,
-		borderColor: '#E5E7EB',
+		borderColor: COLORS.border,
 	},
 	activeTab: {
-		backgroundColor: '#007AFF',
-		borderColor: '#007AFF',
+		backgroundColor: COLORS.accentGreen,
+		borderColor: COLORS.accentGreen,
 	},
 	tabText: {
 		fontSize: 14,
 		fontWeight: '600',
-		color: '#374151',
+		color: COLORS.textSecondary,
 	},
 	activeTabText: {
-		color: '#FFFFFF',
+		color: COLORS.buttonTextDark,
 	},
 	headerText: {
 		fontSize: 26,
 		fontWeight: 'bold',
-		color: '#0B1A2A',
-		textAlign: 'center',
-		marginBottom: 24,
-	},
-	subHeaderText: {
-		fontSize: 16,
-		color: '#4B5563',
+		color: COLORS.textPrimary,
 		textAlign: 'center',
 		marginBottom: 24,
 	},
 	quickTaskForm: {
 		width: '100%',
-		backgroundColor: '#FFFFFF',
+		backgroundColor: COLORS.card,
 		borderRadius: 12,
 		padding: 20,
 		shadowColor: '#000',
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.05,
-		shadowRadius: 8,
-		elevation: 3,
+		shadowOffset: { width: 0, height: 4 },
+		shadowOpacity: 0.1,
+		shadowRadius: 10,
+		elevation: 5,
 	},
 	input: {
 		height: 50,
-		borderColor: '#E5E7EB',
+		borderColor: COLORS.border,
 		borderWidth: 1,
 		borderRadius: 8,
 		paddingHorizontal: 15,
 		fontSize: 16,
-		backgroundColor: '#F9FAFB',
+		backgroundColor: COLORS.background,
 		marginBottom: 16,
 	},
 	quickButton: {
-		backgroundColor: '#4CAF50', // Зелена кнопка
+		backgroundColor: COLORS.accentGreen,
 		paddingVertical: 14,
 		borderRadius: 8,
 		alignItems: 'center',
-		shadowColor: '#4CAF50',
-		shadowOffset: { width: 0, height: 4 },
-		shadowOpacity: 0.3,
-		shadowRadius: 6,
-		elevation: 5,
-		width: '100%', // ⭐️ ДОДАНО: щоб кнопки були однакової ширини
+		width: '100%',
 	},
 	quickButtonDisabled: {
-		backgroundColor: '#A9A9A9',
+		backgroundColor: COLORS.border,
 		opacity: 0.7,
 	},
 	quickButtonText: {
-		color: '#FFFFFF',
+		color: COLORS.buttonTextDark,
 		fontSize: 16,
 		fontWeight: 'bold',
 	},
-	// ⭐️ НОВІ СТИЛІ для другої кнопки
 	detailedButton: {
-		backgroundColor: '#007AFF', // Синій колір
-		shadowColor: '#007AFF',
-		marginTop: 20, // Відступ між формою та кнопкою
+		backgroundColor: COLORS.border,
+		marginTop: 20,
 	},
 	myTasksHeader: {
 		fontSize: 22,
 		fontWeight: 'bold',
-		color: '#0B1A2A',
+		color: COLORS.textPrimary,
 		marginBottom: 16,
 		alignSelf: 'flex-start',
+		paddingHorizontal: 10,
 	},
 	myTaskWrapper: {
 		marginBottom: 16,
 		marginHorizontal: 10,
 	},
 	deleteButton: {
-		backgroundColor: '#FF3B30',
+		backgroundColor: COLORS.accentRed,
 		paddingVertical: 10,
 		borderRadius: 8,
 		alignItems: 'center',
 		marginTop: 6,
 	},
 	deleteButtonText: {
-		color: '#fff',
+		color: COLORS.textPrimary,
 		fontWeight: 'bold',
 	},
 	noTasksText: {
 		textAlign: 'center',
-		color: '#888',
+		color: COLORS.textSecondary,
 		marginTop: 10,
+	},
+	flatListContent: {
+		paddingVertical: 20,
+		paddingHorizontal: 10,
 	},
 })
