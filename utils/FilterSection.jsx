@@ -1,3 +1,4 @@
+// File: FilterSection.jsx
 import {
 	ScrollView,
 	StyleSheet,
@@ -19,27 +20,19 @@ const COLORS = {
 }
 
 export default function FilterSection({
-	currentSort,
-	onSortChange,
-	categories,
+	categories = [],
 	currentCategory,
 	onCategoryChange,
+	currentSort,
+	onSortChange,
 	sortOrder,
 	onSortOrderChange,
-	onReset,
 	searchQuery,
 	onSearchChange,
+	onReset,
 }) {
 	const toggleSortOrder = () => {
-		if (onSortOrderChange) {
-			onSortOrderChange(sortOrder === 'asc' ? 'desc' : 'asc')
-		}
-	}
-
-	const clearSearch = () => {
-		if (onSearchChange) {
-			onSearchChange('')
-		}
+		onSortOrderChange(prev => (prev === 'asc' ? 'desc' : 'asc'))
 	}
 
 	return (
@@ -56,7 +49,10 @@ export default function FilterSection({
 						returnKeyType='search'
 					/>
 					{searchQuery.length > 0 && (
-						<TouchableOpacity style={styles.clearButton} onPress={clearSearch}>
+						<TouchableOpacity
+							style={styles.clearButton}
+							onPress={() => onSearchChange('')}
+						>
 							<Text style={styles.clearButtonText}>✕</Text>
 						</TouchableOpacity>
 					)}
@@ -112,27 +108,23 @@ export default function FilterSection({
 								currentSort === 'alphabet' && styles.sortButtonTextActive,
 							]}
 						>
-							A-Z
+							A–Z
 						</Text>
 					</TouchableOpacity>
 
-					{onSortOrderChange && (
-						<TouchableOpacity
-							style={styles.orderButton}
-							onPress={toggleSortOrder}
-						>
-							<Text style={styles.orderButtonText}>
-								{sortOrder === 'asc' ? '↑' : '↓'}
-							</Text>
-						</TouchableOpacity>
-					)}
+					<TouchableOpacity
+						style={styles.orderButton}
+						onPress={toggleSortOrder}
+					>
+						<Text style={styles.orderButtonText}>
+							{sortOrder === 'asc' ? '↑' : '↓'}
+						</Text>
+					</TouchableOpacity>
 				</View>
 
-				{onReset && (
-					<TouchableOpacity style={styles.resetButton} onPress={onReset}>
-						<Text style={styles.resetButtonText}>Reset</Text>
-					</TouchableOpacity>
-				)}
+				<TouchableOpacity style={styles.resetButton} onPress={onReset}>
+					<Text style={styles.resetButtonText}>Reset</Text>
+				</TouchableOpacity>
 			</View>
 
 			<ScrollView
@@ -184,8 +176,6 @@ export default function FilterSection({
 const styles = StyleSheet.create({
 	container: {
 		backgroundColor: COLORS.card,
-		borderBottomWidth: 1,
-		borderBottomColor: COLORS.border,
 	},
 
 	searchContainer: {
@@ -230,13 +220,11 @@ const styles = StyleSheet.create({
 		paddingBottom: 12,
 		gap: 8,
 	},
-
 	sortContainer: {
 		flexDirection: 'row',
 		gap: 6,
 		flex: 1,
 	},
-
 	sortButton: {
 		paddingHorizontal: 12,
 		paddingVertical: 8,
@@ -260,7 +248,6 @@ const styles = StyleSheet.create({
 		color: COLORS.buttonTextDark,
 		fontWeight: '600',
 	},
-
 	orderButton: {
 		backgroundColor: COLORS.background,
 		width: 36,
@@ -276,7 +263,6 @@ const styles = StyleSheet.create({
 		fontWeight: 'bold',
 		color: COLORS.accentGreen,
 	},
-
 	resetButton: {
 		backgroundColor: COLORS.accentRed,
 		paddingHorizontal: 14,

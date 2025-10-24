@@ -8,16 +8,42 @@ import {
 	query,
 	Timestamp,
 	updateDoc,
+	where,
 } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import { auth, db } from '../src/firebase/config'
-export const useTasks = () => {
+
+export const useTasks = ({
+	category = 'all',
+	sort = 'date',
+	order = 'desc',
+} = {}) => {
 	const [tasks, setTasks] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(null)
 
 	useEffect(() => {
-		const q = query(collection(db, 'tasks'), orderBy('dueDate', 'asc'))
+		setLoading(true)
+		let q = collection(db, 'tasks')
+
+		if (category && category !== 'all') {
+			q = query(q, where('category', '==', category))
+		}
+
+		let sortField
+		switch (sort) {
+			case 'price':
+				sortField = 'payment'
+				break
+			case 'alphabet':
+				sortField = 'title'
+				break
+			case 'date':
+			default:
+				sortField = 'createdAt'
+		}
+
+		q = query(q, orderBy(sortField, order))
 
 		const unsubscribe = onSnapshot(
 			q,
@@ -26,17 +52,17 @@ export const useTasks = () => {
 					const data = doc.data()
 					return {
 						id: doc.id,
-						title: data.title || 'Без назви',
+						title: data.title || 'No Title',
 						description: data.description || '',
 						category: data.category || 'General',
 						payment: data.payment || 0,
-						location: data.location || '',
-						address: data.address || '',
 						status: data.status || 'available',
 						createdBy: data.createdBy || null,
 						assignedTo: data.assignedTo || null,
 						createdAt: data.createdAt || Timestamp.now(),
 						dueDate: data.dueDate || Timestamp.now(),
+						location: data.location || '',
+						address: data.address || '',
 					}
 				})
 				setTasks(tasksData)
@@ -50,7 +76,8 @@ export const useTasks = () => {
 		)
 
 		return () => unsubscribe()
-	}, [])
+	}, [category, sort, order])
+
 	const addBid = async (taskId, bid) => {
 		const taskRef = doc(db, 'tasks', taskId)
 		await updateDoc(taskRef, {
@@ -62,6 +89,7 @@ export const useTasks = () => {
 			}),
 		})
 	}
+
 	const createTask = async taskData => {
 		const currentUserId = auth.currentUser?.uid
 		if (!currentUserId) throw new Error('User is not authenticated.')
@@ -72,7 +100,6 @@ export const useTasks = () => {
 			status: 'available',
 			assignedTo: null,
 			createdAt: Timestamp.now(),
-
 			dueDate: taskData.dueDate || Timestamp.now(),
 		})
 	}
@@ -95,5 +122,13 @@ export const useTasks = () => {
 		})
 	}
 
-	return { tasks, loading, error, createTask, takeTask, completeTask, addBid }
+	return {
+		tasks,
+		loading,
+		error,
+		createTask,
+		takeTask,
+		completeTask,
+		addBid,
+	}
 }

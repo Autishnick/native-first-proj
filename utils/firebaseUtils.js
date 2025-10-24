@@ -1,3 +1,4 @@
+// File: utils/firebaseUtils.js
 import {
 	addDoc,
 	collection,
@@ -57,7 +58,14 @@ export const subscribeToNotifications = (userId, callback, onError) => {
 			console.log(
 				`✅ NOTIFICATIONS: Found ${list.length} documents for user ${userId}.`
 			)
-			callback(list)
+
+			const sortedList = list.sort((a, b) => {
+				const dateA = a.createdAt?.toDate()?.getTime() || 0
+				const dateB = b.createdAt?.toDate()?.getTime() || 0
+				return dateB - dateA
+			})
+
+			callback(sortedList)
 		},
 		error => {
 			console.error(

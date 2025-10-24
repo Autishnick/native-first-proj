@@ -36,8 +36,6 @@ export default function BrowseScreen() {
 
 	const CATEGORY_NAMES = CATEGORIES_DATA.map(item => item.name)
 
-	const { tasks, loading, error } = useTasks()
-
 	const [sortBy, setSortBy] = useState('date')
 	const [sortOrder, setSortOrder] = useState('desc')
 	const [selectedCategory, setSelectedCategory] = useState('all')
@@ -49,43 +47,29 @@ export default function BrowseScreen() {
 		}
 	}, [categoryName])
 
-	const filteredAndSortedTasks = useMemo(() => {
-		let filteredTasks = tasks.filter(
-			task => selectedCategory === 'all' || task.category === selectedCategory
+	const {
+		tasks: backendTasks,
+		loading,
+		error,
+	} = useTasks({
+		category: selectedCategory,
+		sort: sortBy,
+		order: sortOrder,
+	})
+
+	const filteredTasks = useMemo(() => {
+		if (!searchQuery.trim()) {
+			return backendTasks
+		}
+
+		const query = searchQuery.toLowerCase().trim()
+		return backendTasks.filter(
+			task =>
+				task.title?.toLowerCase().includes(query) ||
+				task.description?.toLowerCase().includes(query) ||
+				task.category?.toLowerCase().includes(query)
 		)
-
-		if (searchQuery.trim()) {
-			const query = searchQuery.toLowerCase().trim()
-			filteredTasks = filteredTasks.filter(
-				task =>
-					task.title?.toLowerCase().includes(query) ||
-					task.description?.toLowerCase().includes(query) ||
-					task.category?.toLowerCase().includes(query)
-			)
-		}
-
-		const tasksToSort = [...filteredTasks]
-
-		switch (sortBy) {
-			case 'alphabet':
-				return tasksToSort.sort((a, b) =>
-					sortOrder === 'asc'
-						? a.title.localeCompare(b.title)
-						: b.title.localeCompare(a.title)
-				)
-			case 'price':
-				return tasksToSort.sort((a, b) =>
-					sortOrder === 'asc' ? a.payment - b.payment : b.payment - a.payment
-				)
-			case 'date':
-			default:
-				return tasksToSort.sort((a, b) => {
-					const dateA = a.createdAt?.toDate?.()?.getTime?.() || 0
-					const dateB = b.createdAt?.toDate?.()?.getTime?.() || 0
-					return sortOrder === 'asc' ? dateA - dateB : dateB - dateA
-				})
-		}
-	}, [tasks, sortBy, sortOrder, selectedCategory, searchQuery])
+	}, [backendTasks, searchQuery])
 
 	const handleReset = () => {
 		setSortBy('date')
@@ -127,7 +111,7 @@ export default function BrowseScreen() {
 		}
 	}
 
-	if (loading) {
+	if (loading && !backendTasks.length) {
 		return (
 			<View style={styles.centered}>
 				<ActivityIndicator size='large' color={COLORS.accentGreen} />
@@ -145,9 +129,10 @@ export default function BrowseScreen() {
 			</View>
 		)
 	}
+
 	const renderTaskContent = () => {
-		if (filteredAndSortedTasks.length > 0) {
-			return filteredAndSortedTasks.map(task => (
+		if (filteredTasks.length > 0) {
+			return filteredTasks.map(task => (
 				<TaskItem
 					key={task.id}
 					task={task}
@@ -162,6 +147,7 @@ export default function BrowseScreen() {
 
 		return <Text style={styles.messageText}>{message}</Text>
 	}
+
 	return (
 		<View style={styles.container}>
 			<StatusBar barStyle='light-content' />
@@ -188,6 +174,12 @@ export default function BrowseScreen() {
 
 			<ScrollView contentContainerStyle={styles.scrollContent}>
 				{renderTaskContent()}
+				{loading && (
+					<ActivityIndicator
+						style={{ marginTop: 10 }}
+						color={COLORS.accentGreen}
+					/>
+				)}
 			</ScrollView>
 		</View>
 	)
