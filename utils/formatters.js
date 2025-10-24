@@ -1,0 +1,33 @@
+// File: utils/formatters.js
+
+export const formatRole = role => {
+	if (!role) return 'N/A'
+	return role.charAt(0).toUpperCase() + role.slice(1)
+}
+
+export const formatDate = isoString => {
+	if (!isoString) return 'N/A'
+	try {
+		// Перевіряємо, чи це об'єкт Timestamp з Firebase
+		if (isoString.toDate && typeof isoString.toDate === 'function') {
+			return isoString.toDate().toLocaleDateString('en-US')
+		}
+		// Якщо це рядок або число (секунди)
+		let date
+		if (typeof isoString === 'string') {
+			date = new Date(isoString)
+		} else if (typeof isoString === 'number') {
+			date = new Date(isoString * 1000) // Припускаємо секунди
+		} else {
+			return 'Invalid Input'
+		}
+
+		if (isNaN(date.getTime())) {
+			return 'Invalid Date'
+		}
+		return date.toLocaleDateString('en-US')
+	} catch (e) {
+		console.error('Error formatting date:', e)
+		return 'Invalid Date'
+	}
+}

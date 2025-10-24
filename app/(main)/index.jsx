@@ -8,7 +8,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native'
-import { CATEGORIES_DATA } from '../../utils/CategoriesData'
+import { CATEGORIES_DATA } from '../../constants/CategoriesData'
 
 export default function ActiveTodosScreen() {
 	const router = useRouter()
