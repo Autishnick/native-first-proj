@@ -1,4 +1,3 @@
-// File: components/ui/BidderCard.jsx
 import { Ionicons } from '@expo/vector-icons'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { COLORS } from '../../constants/colors'
@@ -7,7 +6,6 @@ export default function BidderCard({ bid, onAssign, onDecline, onMessage }) {
 	return (
 		<View style={styles.bidderCard}>
 			<View style={styles.bidderHeader}>
-				{/* Basic Avatar Placeholder */}
 				<View style={[styles.avatar, styles.avatarPlaceholder]}>
 					<Ionicons
 						name='person-circle-outline'
@@ -19,7 +17,6 @@ export default function BidderCard({ bid, onAssign, onDecline, onMessage }) {
 					<Text style={styles.bidderName} numberOfLines={1}>
 						{bid.senderName || 'Unknown User'}
 					</Text>
-					{/* Add rating or other info here if available */}
 				</View>
 			</View>
 
@@ -60,18 +57,18 @@ const styles = StyleSheet.create({
 		borderRadius: 12,
 		padding: 16,
 		marginRight: 10,
-		width: 260, // Slightly wider width
+		width: 260,
 		shadowColor: '#000',
 		shadowOpacity: 0.1,
 		shadowRadius: 10,
 		shadowOffset: { width: 0, height: 4 },
 		elevation: 3,
-		justifyContent: 'space-between', // Ensure content fills card vertically
+		justifyContent: 'space-between',
 	},
 	bidderHeader: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		marginBottom: 10, // Added margin
+		marginBottom: 10,
 	},
 	avatar: {
 		width: 48,
@@ -81,19 +78,19 @@ const styles = StyleSheet.create({
 		backgroundColor: COLORS.border,
 		justifyContent: 'center',
 		alignItems: 'center',
-		overflow: 'hidden', // Ensure image stays within bounds if used
+		overflow: 'hidden',
 	},
 	avatarPlaceholder: {},
 	bidderInfo: {
-		flex: 1, // Take remaining space
+		flex: 1,
 	},
 	bidderName: {
-		fontSize: 17, // Slightly smaller
+		fontSize: 17,
 		fontWeight: '600',
 		color: COLORS.textPrimary,
 	},
 	bidDetails: {
-		marginVertical: 12, // Use vertical margin
+		marginVertical: 12,
 		paddingTop: 12,
 		borderTopWidth: 1,
 		borderTopColor: COLORS.border,
@@ -112,14 +109,14 @@ const styles = StyleSheet.create({
 	},
 	actionRow: {
 		flexDirection: 'row',
-		justifyContent: 'space-around', // Space out buttons more evenly
-		marginTop: 12, // Use margin top
+		justifyContent: 'space-around',
+		marginTop: 12,
 		borderTopWidth: 1,
 		borderTopColor: COLORS.border,
 		paddingTop: 12,
 	},
 	actionButton: {
-		paddingVertical: 6, // Slightly more padding
+		paddingVertical: 6,
 		paddingHorizontal: 8,
 	},
 	actionTextAssign: {

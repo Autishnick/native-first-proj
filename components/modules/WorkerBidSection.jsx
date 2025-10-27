@@ -1,4 +1,3 @@
-// File: components/modules/WorkerBidSection.jsx
 import { Ionicons } from '@expo/vector-icons'
 import { useEffect, useState } from 'react'
 import {
@@ -17,13 +16,12 @@ export default function WorkerBidSection({
 	userName,
 	onSubmitBid,
 }) {
-	const initialBidPrice = '0' // Or fetch existing bid if needed
+	const initialBidPrice = '0'
 	const [editing, setEditing] = useState(false)
 	const [bidPrice, setBidPrice] = useState(initialBidPrice)
 	const [tempBidPrice, setTempBidPrice] = useState(initialBidPrice)
 	const [submitting, setSubmitting] = useState(false)
 
-	// Reset bid price if task changes (e.g., modal reused)
 	useEffect(() => {
 		setBidPrice(initialBidPrice)
 		setTempBidPrice(initialBidPrice)
@@ -68,22 +66,17 @@ export default function WorkerBidSection({
 		}
 
 		setSubmitting(true)
-		setEditing(false) // Ensure edit mode is off
+		setEditing(false)
 
 		try {
-			// Call the onSubmitBid passed from parent (CustomModal)
-			// This function handles createNotification and addBid
 			await onSubmitBid({
-				taskCreatorId: task.createdBy, // Pass necessary info
+				taskCreatorId: task.createdBy,
 				taskId: task.id,
 				bidAmount: currentBid,
-				type: 'new_bid', // Ensure type is correct
-				message: `I am interested in this task.`, // Default message
+				type: 'new_bid',
+				message: `I am interested in this task.`,
 			})
-			// Success Alert and closing is handled in parent's onSubmitBid
-			// Reset local state after successful submission (via useEffect on task change/modal close)
 		} catch (error) {
-			// Error alert is likely handled in parent's onSubmitBid
 			console.error('WorkerBidSection: Error during submission:', error)
 		} finally {
 			setSubmitting(false)
@@ -96,7 +89,7 @@ export default function WorkerBidSection({
 				<Text style={styles.bidLabel}>Your Bid Price</Text>
 				<TouchableOpacity
 					style={styles.editButton}
-					onPress={editing ? handleCancel : handleEdit} // Toggle edit/cancel
+					onPress={editing ? handleCancel : handleEdit}
 					disabled={submitting}
 				>
 					<Ionicons
@@ -115,10 +108,9 @@ export default function WorkerBidSection({
 						keyboardType='numeric'
 						value={tempBidPrice}
 						onChangeText={handleBidPriceChange}
-						autoFocus={true} // Focus input when editing starts
+						autoFocus={true}
 					/>
 					<View style={styles.controlButtonContainer}>
-						{/* Save button replaces Edit when editing */}
 						<TouchableOpacity
 							style={[styles.controlButton, styles.saveButton]}
 							onPress={handleSave}
@@ -131,7 +123,6 @@ export default function WorkerBidSection({
 				<Text style={styles.bidValue}>${bidPrice}</Text>
 			)}
 
-			{/* Submit button only visible when not editing */}
 			{!editing && (
 				<TouchableOpacity
 					style={[
@@ -139,7 +130,7 @@ export default function WorkerBidSection({
 						submitting && styles.submitButtonDisabled,
 					]}
 					onPress={handleSubmit}
-					disabled={submitting || bidPrice === '0'} // Disable if price is 0
+					disabled={submitting || bidPrice === '0'}
 				>
 					<Text style={styles.submitText}>
 						{submitting ? 'Submitting...' : 'Submit Bid'}
@@ -154,10 +145,10 @@ const styles = StyleSheet.create({
 	bidSection: {
 		backgroundColor: COLORS.bidSection,
 		padding: 16,
-		paddingBottom: 34, // Safe area padding
+		paddingBottom: 34,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
-		marginTop: 'auto', // Pushes to bottom
+		marginTop: 'auto',
 	},
 	bidHeader: {
 		flexDirection: 'row',
@@ -173,7 +164,7 @@ const styles = StyleSheet.create({
 	editButton: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		backgroundColor: COLORS.textPrimary, // Light background for contrast
+		backgroundColor: COLORS.textPrimary,
 		paddingVertical: 6,
 		paddingHorizontal: 12,
 		borderRadius: 10,
@@ -203,7 +194,7 @@ const styles = StyleSheet.create({
 		paddingVertical: 14,
 		borderRadius: 12,
 		alignItems: 'center',
-		marginTop: 20, // Increased margin
+		marginTop: 20,
 	},
 	submitButtonDisabled: {
 		backgroundColor: COLORS.border,
@@ -216,7 +207,7 @@ const styles = StyleSheet.create({
 	},
 	controlButtonContainer: {
 		flexDirection: 'row',
-		justifyContent: 'flex-end', // Align buttons to the right
+		justifyContent: 'flex-end',
 		marginTop: 10,
 	},
 	controlButton: {
@@ -224,7 +215,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 20,
 		borderRadius: 10,
 		alignItems: 'center',
-		marginLeft: 10, // Space between buttons if multiple
+		marginLeft: 10,
 	},
 	saveButton: {
 		backgroundColor: COLORS.accentGreen,
@@ -232,6 +223,6 @@ const styles = StyleSheet.create({
 	controlButtonText: {
 		fontSize: 16,
 		fontWeight: '600',
-		color: COLORS.buttonTextDark, // Dark text on green/gray
+		color: COLORS.buttonTextDark,
 	},
 })

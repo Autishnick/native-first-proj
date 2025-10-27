@@ -1,4 +1,3 @@
-// File: components/modules/MyCreatedTasksList.jsx
 import {
 	FlatList,
 	StyleSheet,
@@ -7,7 +6,7 @@ import {
 	View,
 } from 'react-native'
 import { COLORS } from '../../constants/colors'
-import TaskItem from '../ui/TaskItem' // Assuming TaskItem is in ui folder
+import TaskItem from '../ui/TaskItem'
 
 export default function MyCreatedTasksList({
 	tasks,
@@ -19,7 +18,7 @@ export default function MyCreatedTasksList({
 			<TaskItem task={item} onPress={() => onTaskPress(item)} />
 			<TouchableOpacity
 				style={styles.deleteButton}
-				onPress={() => onDeleteTask(item.id)} // Call onDeleteTask passed via props
+				onPress={() => onDeleteTask(item.id)}
 			>
 				<Text style={styles.deleteButtonText}>Delete</Text>
 			</TouchableOpacity>
@@ -60,11 +59,11 @@ const styles = StyleSheet.create({
 		fontWeight: 'bold',
 		color: COLORS.textPrimary,
 		marginBottom: 16,
-		paddingHorizontal: 10, // Consistent padding
+		paddingHorizontal: 10,
 	},
 	myTaskWrapper: {
 		marginBottom: 16,
-		marginHorizontal: 10, // Consistent padding
+		marginHorizontal: 10,
 	},
 	deleteButton: {
 		backgroundColor: COLORS.accentRed,
@@ -80,7 +79,7 @@ const styles = StyleSheet.create({
 	noTasksText: {
 		textAlign: 'center',
 		color: COLORS.textSecondary,
-		marginTop: 20, // Increased margin
+		marginTop: 20,
 		paddingHorizontal: 10,
 	},
 })

@@ -1,4 +1,3 @@
-// File: utils/firebaseUtils.js
 import {
 	addDoc,
 	collection,

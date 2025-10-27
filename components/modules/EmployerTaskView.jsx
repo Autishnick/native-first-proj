@@ -1,4 +1,3 @@
-// File: components/modules/EmployerTaskView.jsx
 import { useState } from 'react'
 import {
 	Alert,
@@ -9,56 +8,50 @@ import {
 	View,
 } from 'react-native'
 import { COLORS } from '../../constants/colors'
-import CreateTaskModal from './CreateDetailTaskModal' // Assuming path
-import CustomModal from './ModalTaskDetails' // Assuming path
+import CreateTaskModal from './CreateDetailTaskModal'
+import CustomModal from './ModalTaskDetails'
 import MyCreatedTasksList from './MyCreatedTasksList'
 import QuickTaskForm from './QuickTaskForm'
 
 export default function EmployerTaskView({
 	userId,
 	userName,
-	tasks, // Full list from useTasks
+	tasks,
 	createTask,
 	handleOpenTaskDetails,
-	handleDeleteTask, // Function passed from MyTasksScreen
-	handleBidSubmission, // Function passed from MyTasksScreen
+	handleDeleteTask,
+	handleBidSubmission,
 }) {
 	const [isDetailedModalVisible, setIsDetailedModalVisible] = useState(false)
-	const [modalVisible, setModalVisible] = useState(false) // ModalTaskDetails visibility
-	const [selectedTask, setSelectedTask] = useState(null) // Selected task for ModalTaskDetails
+	const [modalVisible, setModalVisible] = useState(false)
+	const [selectedTask, setSelectedTask] = useState(null)
 
-	// Wrapper for handleOpenTaskDetails to manage local state
 	const openDetailsModal = task => {
 		setSelectedTask(task)
 		setModalVisible(true)
 	}
 
-	// Wrapper for creating quick tasks
 	const handleCreateQuickTask = async title => {
 		const taskData = {
 			title: title,
 			description: `Quick task: ${title}`,
-			category: 'General', // Default values
-			payment: 50, // Default value
-			// Note: createdBy, createdByDisplayName, title_lowercase are added within createTask hook now
+			category: 'General',
+			payment: 50,
 		}
-		await createTask(taskData) // Call the function from useTasks hook
+		await createTask(taskData)
 	}
 
-	// Wrapper for creating detailed tasks
 	const handleCreateDetailedTaskSubmit = async taskDataFromModal => {
 		try {
-			await createTask(taskDataFromModal) // Call the function from useTasks hook
-			setIsDetailedModalVisible(false) // Close modal on success
+			await createTask(taskDataFromModal)
+			setIsDetailedModalVisible(false)
 			Alert.alert('Success!', 'Your detailed task has been posted.')
 		} catch (error) {
 			console.error('❌ Error creating detailed task:', error)
 			Alert.alert('Error', 'Failed to create detailed task.')
-			// Keep modal open on error maybe?
 		}
 	}
 
-	// Filter tasks created by the current employer
 	const myTasks = tasks.filter(task => task.createdBy === userId)
 
 	return (
@@ -67,9 +60,9 @@ export default function EmployerTaskView({
 			<CustomModal
 				visible={modalVisible}
 				onClose={() => setModalVisible(false)}
-				task={selectedTask} // Pass the single selected task
+				task={selectedTask}
 				userId={userId}
-				onSubmitBid={handleBidSubmission} // Pass down the bid submission handler
+				onSubmitBid={handleBidSubmission}
 			/>
 			<Text style={styles.headerText}>Need help? Get it done!</Text>
 
@@ -90,8 +83,8 @@ export default function EmployerTaskView({
 
 			<MyCreatedTasksList
 				tasks={myTasks}
-				onTaskPress={openDetailsModal} // Use the wrapper
-				onDeleteTask={handleDeleteTask} // Pass the delete handler down
+				onTaskPress={openDetailsModal}
+				onDeleteTask={handleDeleteTask}
 			/>
 		</View>
 	)
@@ -114,15 +107,15 @@ const styles = StyleSheet.create({
 		marginBottom: 24,
 	},
 	detailedButton: {
-		backgroundColor: COLORS.border, // Or another suitable color
+		backgroundColor: COLORS.border,
 		paddingVertical: 14,
 		borderRadius: 8,
 		alignItems: 'center',
 		width: '100%',
-		marginBottom: 20, // Add margin
+		marginBottom: 20,
 	},
 	detailedButtonText: {
-		color: COLORS.textPrimary, // Use light text for dark button
+		color: COLORS.textPrimary,
 		fontSize: 16,
 		fontWeight: 'bold',
 	},

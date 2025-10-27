@@ -1,5 +1,4 @@
-// File: app/(main)/messages/index.jsx
-import { Ionicons } from '@expo/vector-icons' // Для іконок
+import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useMemo } from 'react'
 import {
@@ -13,11 +12,7 @@ import {
 } from 'react-native'
 import { useAuth } from '../../../hooks/useAuth'
 
-// ❗️ ВАЖЛИВО: Нам потрібен хук, щоб отримувати
-// ВСІ сповіщення (вхідні ТА вихідні) для списку чатів.
-// Ми не можемо використовувати старий subscribeToNotifications,
-// тому ми беремо логіку з useTaskMessages і адаптуємо її.
-import { useChatList } from '../../../hooks/useChatList' // 👈 Ми створимо цей хук (Крок 2)
+import { useChatList } from '../../../hooks/useChatList'
 
 const COLORS = {
 	background: '#1A202C',
@@ -34,63 +29,53 @@ export default function ChatListScreen() {
 	const { userId } = useAuth()
 	const router = useRouter()
 
-	// 1. Використовуємо новий хук, щоб отримати ВСІ повідомлення
 	const { messages: allMessages, loading } = useChatList(userId)
 
-	// 2. Логіка групування повідомлень в чати
 	const chatGroups = useMemo(() => {
 		if (!allMessages || allMessages.length === 0) {
 			return []
 		}
 
-		// Групуємо повідомлення за taskId
 		const groups = new Map()
 
 		allMessages.forEach(msg => {
-			// Визначаємо унікальний ключ для чату (за завданням)
 			const chatId = msg.taskId
-			if (!chatId) return // Ігноруємо повідомлення без taskId
+			if (!chatId) return
 
-			// Визначаємо, хто є співрозмовником
 			const otherPersonId =
 				msg.senderId === userId ? msg.recipientId : msg.senderId
 			const otherPersonName =
-				msg.senderId === userId ? msg.recipientName : msg.senderName // Потрібно додати recipientName при створенні
+				msg.senderId === userId ? msg.recipientName : msg.senderName
 
 			if (!groups.has(chatId)) {
-				// Якщо це перший раз, коли ми бачимо цей чат
 				groups.set(chatId, {
 					chatId: chatId,
 					otherUserId: otherPersonId,
 					otherUserName: otherPersonName || 'Chat',
-					lastMessage: msg, // Поки що це останнє повідомлення
+					lastMessage: msg,
 					unreadCount: 0,
 				})
 			} else {
-				// Якщо чат вже існує, оновлюємо останнє повідомлення
 				const chat = groups.get(chatId)
 				if (msg.createdAt?.toDate() > chat.lastMessage.createdAt?.toDate()) {
 					chat.lastMessage = msg
 				}
 			}
 
-			// Рахуємо непрочитані (тільки ті, що прийшли нам)
 			if (!msg.read && msg.recipientId === userId) {
 				groups.get(chatId).unreadCount++
 			}
 		})
 
-		// Конвертуємо Map в масив і сортуємо (новіші чати зверху)
 		return Array.from(groups.values()).sort(
 			(a, b) =>
 				b.lastMessage.createdAt?.toDate() - a.lastMessage.createdAt?.toDate()
 		)
 	}, [allMessages, userId])
 
-	// 3. Функція переходу до детального чату
 	const handlePressChat = chat => {
 		router.push({
-			pathname: `/messages/${chat.chatId}`, // Перехід на [TaskId].jsx
+			pathname: `/messages/${chat.chatId}`,
 			params: {
 				taskId: chat.chatId,
 				otherUserId: chat.otherUserId,
@@ -99,7 +84,6 @@ export default function ChatListScreen() {
 		})
 	}
 
-	// 4. Рендер елемента списку (окремого чату)
 	const renderChatItem = ({ item: chat }) => {
 		const lastMsg = chat.lastMessage
 		const isMyLastMessage = lastMsg.senderId === userId
@@ -163,7 +147,6 @@ export default function ChatListScreen() {
 	)
 }
 
-// Нові стилі для списку чатів
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,

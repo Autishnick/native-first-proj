@@ -98,7 +98,7 @@ export const useTaskMessages = (currentUserId, taskId) => {
 		}
 	}, [currentUserId, taskId])
 
-	// Об'єднуємо та сортуємо масиви
+	// Об'єднуємо та сортуємо масивисв
 	const messages = useMemo(() => {
 		const allMessages = [...sentMessages, ...receivedMessages]
 

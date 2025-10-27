@@ -1,7 +1,6 @@
 import { Stack, useRouter } from 'expo-router'
 import { useEffect } from 'react'
 import { AuthProvider, useAuthContext } from '../hooks/useAuthContext'
-// Цей компонент вирішує, куди перенаправити користувача
 function RootLayoutNav() {
 	const { user, loading } = useAuthContext()
 	const router = useRouter()
@@ -32,7 +31,6 @@ function RootLayoutNav() {
 	)
 }
 
-// Головний експорт, який обгортає все в AuthProvider
 export default function RootLayout() {
 	return (
 		<AuthProvider>

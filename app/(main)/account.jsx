@@ -1,4 +1,3 @@
-// File: app/(main)/account.jsx (або ваш шлях)
 import { router } from 'expo-router'
 import { useState } from 'react'
 import {
@@ -10,19 +9,10 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native'
-import PasswordChangeSection from '../../components/modules/PasswordChangeSection' // Імпорт
-import PersonalInfoSection from '../../components/modules/PersonalInfoSection' // Імпорт
+import PasswordChangeSection from '../../components/modules/PasswordChangeSection'
+import PersonalInfoSection from '../../components/modules/PersonalInfoSection'
+import { COLORS } from '../../constants/colors'
 import { useAuth } from '../../hooks/useAuth'
-
-const COLORS = {
-	// Залишаємо кольори, потрібні для цього екрана
-	background: '#0B1A2A',
-	textPrimary: '#FFFFFF',
-	textSecondary: '#A0B3C9',
-	accentGreen: '#2ECC71',
-	link: '#2ECC71',
-	actionButtonBg: '#1C3B5A',
-}
 
 export default function AccountScreen() {
 	const { user, profile, loading, updateUserProfile, changeUserPassword } =
@@ -30,15 +20,12 @@ export default function AccountScreen() {
 	const [isPasswordSectionVisible, setIsPasswordSectionVisible] =
 		useState(false)
 
-	// Функція для PasswordChangeSection
 	const handlePasswordChangeSubmit = async (currentPassword, newPassword) => {
 		try {
 			await changeUserPassword(currentPassword, newPassword)
 			Alert.alert('Success', 'Your password has been changed successfully.')
-			setIsPasswordSectionVisible(false) // Закриваємо секцію
+			setIsPasswordSectionVisible(false)
 		} catch (error) {
-			// Помилка обробляється всередині PasswordChangeSection,
-			// але ми можемо перекинути її, якщо потрібно
 			throw error
 		}
 	}
@@ -47,7 +34,6 @@ export default function AccountScreen() {
 		setIsPasswordSectionVisible(!isPasswordSectionVisible)
 	}
 
-	// Стани завантаження та "не залогінений"
 	if (loading) {
 		return (
 			<View style={[styles.mainContainer, styles.centered]}>
@@ -57,7 +43,6 @@ export default function AccountScreen() {
 	}
 
 	if (!user) {
-		// Логіка для незалогіненого користувача (можна винести в NotLoggedInPlaceholder)
 		return (
 			<View style={[styles.mainContainer, styles.centered, { padding: 25 }]}>
 				<Text style={styles.title}>My Account</Text>
@@ -66,7 +51,7 @@ export default function AccountScreen() {
 				</Text>
 				<TouchableOpacity
 					style={styles.loginButton}
-					onPress={() => router.replace('/(auth)/login')} // Використовуємо replace
+					onPress={() => router.replace('/(auth)/login')}
 				>
 					<Text style={styles.loginButtonText}>Log In</Text>
 				</TouchableOpacity>
@@ -80,18 +65,15 @@ export default function AccountScreen() {
 		)
 	}
 
-	// Рендер основного екрана
 	return (
 		<View style={styles.mainContainer}>
 			<ScrollView style={styles.scrollContainer}>
-				{/* Використовуємо винесені компоненти */}
 				<PersonalInfoSection
 					user={user}
 					profile={profile}
 					updateUserProfile={updateUserProfile}
 				/>
 
-				{/* Секція Безпеки */}
 				<View style={styles.section}>
 					<Text style={styles.sectionTitle}>Account Security</Text>
 					<TouchableOpacity
@@ -107,12 +89,10 @@ export default function AccountScreen() {
 					{isPasswordSectionVisible && (
 						<PasswordChangeSection
 							onChangePassword={handlePasswordChangeSubmit}
-							onCancel={togglePasswordSection} // Передаємо функцію для закриття
+							onCancel={togglePasswordSection}
 						/>
 					)}
 				</View>
-
-				{/* Тут можна додати інші секції, наприклад, "Налаштування сповіщень" */}
 			</ScrollView>
 		</View>
 	)
@@ -126,7 +106,7 @@ const styles = StyleSheet.create({
 	scrollContainer: {
 		paddingHorizontal: 20,
 		paddingTop: 30,
-		paddingBottom: 50, // Додано відступ знизу
+		paddingBottom: 50,
 	},
 	centered: {
 		justifyContent: 'center',
@@ -148,9 +128,8 @@ const styles = StyleSheet.create({
 	},
 	section: {
 		marginBottom: 30,
-	}, // Стилі для section тепер в дочірніх компонентах
+	},
 	sectionTitle: {
-		// Залишаємо стиль для заголовка секції безпеки
 		fontSize: 20,
 		fontWeight: '600',
 		color: COLORS.textPrimary,
@@ -177,7 +156,7 @@ const styles = StyleSheet.create({
 	link: {
 		color: COLORS.link,
 		fontWeight: 'bold',
-		fontSize: 16, // Зроблено однакового розміру з subtitle
+		fontSize: 16,
 	},
 	actionButton: {
 		backgroundColor: COLORS.actionButtonBg,

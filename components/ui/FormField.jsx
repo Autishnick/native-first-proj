@@ -1,4 +1,3 @@
-// File: components/ui/FormField.jsx
 import { StyleSheet, Text, TextInput, View } from 'react-native'
 import { COLORS } from '../../constants/colors'
 
@@ -14,13 +13,13 @@ const FormField = ({
 		<View style={styles.fieldContainer}>
 			<Text style={styles.label}>{label}</Text>
 			<TextInput
-				style={[styles.input, style]} // Дозволяє передавати додаткові стилі (напр., для textArea)
+				style={[styles.input, style]}
 				value={value}
 				onChangeText={onChangeText}
 				placeholder={placeholder}
-				placeholderTextColor={COLORS.textPlaceholder} // Використовуємо textPlaceholder
-				color={COLORS.textPrimary} // Задаємо колір тексту
-				{...textInputProps} // Передаємо інші пропси TextInput (keyboardType, multiline, etc.)
+				placeholderTextColor={COLORS.textPlaceholder}
+				color={COLORS.textPrimary}
+				{...textInputProps}
 			/>
 		</View>
 	)
@@ -28,14 +27,13 @@ const FormField = ({
 
 const styles = StyleSheet.create({
 	fieldContainer: {
-		marginBottom: 16, // Відступ між полями
+		marginBottom: 16,
 	},
 	label: {
 		fontSize: 16,
 		fontWeight: '600',
 		color: COLORS.textPrimary,
 		marginBottom: 8,
-		// marginTop: 10, // Зайвий, так як є marginBottom у fieldContainer
 	},
 	input: {
 		height: 50,
@@ -46,7 +44,6 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		backgroundColor: COLORS.background,
 	},
-	// Стилі, що специфічні для textArea, будуть передаватися через пропс 'style'
 })
 
 export default FormField

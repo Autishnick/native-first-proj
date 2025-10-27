@@ -46,11 +46,11 @@ export default function ActiveTodosScreen() {
 	)
 }
 
-// 6. Оновлюємо стилі, щоб вони відповідали фото
+// 6.
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		// ФоновИй колір, як на скріншоті (світло-сірий)
+
 		backgroundColor: '#F0F4F8',
 	},
 	gridContainer: {
@@ -58,30 +58,30 @@ const styles = StyleSheet.create({
 	},
 	categoryItem: {
 		flex: 1,
-		// Світлий фон для кнопок
+
 		backgroundColor: '#FFFFFF',
 		borderRadius: 12,
 		paddingVertical: 20,
 		paddingHorizontal: 10,
 		margin: 8,
-		// Вирівнюємо вміст по центру
+
 		alignItems: 'center',
 		justifyContent: 'center',
-		// Тінь для карток (опціонально, але схоже на фото)
+
 		elevation: 3,
 		shadowColor: '#000',
 		shadowOffset: { width: 0, height: 1 },
 		shadowOpacity: 0.1,
 		shadowRadius: 2,
-		// Мінімальна висота, щоб кнопки були однакового розміру
+
 		minHeight: 130,
 	},
 	categoryText: {
 		marginTop: 10,
 		fontSize: 14,
 		fontWeight: '500',
-		color: '#0B1A2A', // Темний текст
-		textAlign: 'center', // Для багаторядкових назв
+		color: '#0B1A2A',
+		textAlign: 'center',
 	},
 	mainText: {
 		marginTop: 10,

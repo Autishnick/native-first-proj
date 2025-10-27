@@ -1,4 +1,3 @@
-// File: components/ui/InfoRow.jsx
 import { StyleSheet, Text, TextInput, View } from 'react-native'
 
 import { COLORS } from '../../constants/colors'
@@ -11,7 +10,7 @@ const InfoRow = ({ label, value, isEditing, onChangeText, isLast }) => (
 				style={styles.infoInput}
 				value={value}
 				onChangeText={onChangeText}
-				autoCapitalize='words' // Можна налаштувати за потреби
+				autoCapitalize='words'
 				placeholderTextColor={COLORS.textSecondary}
 			/>
 		) : (
@@ -35,22 +34,22 @@ const styles = StyleSheet.create({
 	},
 	infoLabel: {
 		fontSize: 16,
-		color: COLORS.textSecondary, // Змінено для кращого контрасту
-		marginRight: 10, // Додано відступ
+		color: COLORS.textSecondary,
+		marginRight: 10,
 	},
 	infoValue: {
 		fontSize: 16,
 		fontWeight: '600',
-		color: COLORS.accentGreen, // Колір значення
-		textAlign: 'right', // Вирівнюємо значення праворуч
+		color: COLORS.accentGreen,
+		textAlign: 'right',
 	},
 	infoInput: {
 		fontSize: 16,
 		fontWeight: '600',
-		color: COLORS.textPrimary, // Колір тексту при редагуванні
+		color: COLORS.textPrimary,
 		textAlign: 'right',
-		flex: 1, // Дозволяє полю розтягуватися
-		marginLeft: 10, // Відступ від мітки
+		flex: 1,
+		marginLeft: 10,
 	},
 })
 

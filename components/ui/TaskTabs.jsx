@@ -1,4 +1,3 @@
-// File: components/ui/TaskTabs.jsx
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { COLORS } from '../../constants/colors'
 

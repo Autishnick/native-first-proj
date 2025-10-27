@@ -1,18 +1,16 @@
-// File: app/(main)/browse.jsx
 import { useLocalSearchParams } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
 	ActivityIndicator,
 	Alert,
-	// ScrollView, // Більше не потрібен
 	StatusBar,
 	StyleSheet,
 	Text,
 	View,
 } from 'react-native'
 import CustomModal from '../../components/modules/ModalTaskDetails'
-import TaskList from '../../components/modules/TaskList' // 1. Імпортуємо TaskList
-// import TaskItem from '../../components/ui/TaskItem'; // Більше не потрібен тут
+import TaskList from '../../components/modules/TaskList'
+
 import { CATEGORIES_DATA } from '../../constants/CategoriesData'
 import { COLORS } from '../../constants/colors'
 import { useAuth } from '../../hooks/useAuth'
@@ -60,15 +58,12 @@ export default function BrowseScreen() {
 		setModalVisible(true)
 	}
 
-	// File: app/(main)/browse.jsx
-	// ...
 	const handleBidSubmission = async bidData => {
-		// Перейменуємо для ясності
 		if (!userId) {
 			Alert.alert('Error', 'You must be logged in to place a bid.')
 			return
 		}
-		// Перевіряємо, чи є taskCreatorId в отриманих даних
+
 		if (!bidData.taskCreatorId) {
 			Alert.alert('Error', 'Cannot determine the recipient for the bid.')
 			console.error(
@@ -77,37 +72,34 @@ export default function BrowseScreen() {
 			)
 			return
 		}
-		// Перевіряємо, чи користувач не робить ставку на своє завдання
+
 		if (userId === bidData.taskCreatorId) {
 			Alert.alert('Wait', 'You cannot place a bid on your own task.')
 			return
 		}
 
 		try {
-			// ✅ ВИПРАВЛЕНО: Створюємо dataToSend правильно
 			const dataToSend = {
-				recipientId: bidData.taskCreatorId, // Беремо ID автора завдання
+				recipientId: bidData.taskCreatorId,
 				senderId: userId,
 				senderName: userName || 'Anonymous User',
-				taskId: bidData.taskId, // Передаємо taskId
-				type: bidData.type || 'new_bid', // Передаємо тип
-				message: bidData.message, // Передаємо повідомлення
-				bidAmount: bidData.bidAmount, // Передаємо суму
+				taskId: bidData.taskId,
+				type: bidData.type || 'new_bid',
+				message: bidData.message,
+				bidAmount: bidData.bidAmount,
 			}
 
 			await createNotification(dataToSend)
 
 			Alert.alert('Success', 'Bid submitted and creator notified successfully!')
-			setModalVisible(false) // Закриваємо модалку деталей
+			setModalVisible(false)
 		} catch (error) {
 			Alert.alert('Error', 'Failed to submit bid. Please try again.')
 			console.error('Bid submission failed:', error)
 		}
 	}
-	// ...
 
 	if (loading && !tasks.length) {
-		// Показуємо тільки початкове завантаження
 		return (
 			<View style={styles.centered}>
 				<ActivityIndicator size='large' color={COLORS.accentGreen} />
@@ -150,12 +142,11 @@ export default function BrowseScreen() {
 				onSearchChange={setSearchQuery}
 			/>
 
-			{/* 3. Використовуємо TaskList замість ScrollView */}
 			<TaskList
 				tasks={tasks}
 				onTaskPress={handleOpenTaskDetails}
-				isLoading={loading} // Передаємо стан завантаження
-				searchQuery={searchQuery} // Передаємо запит для повідомлення "No results"
+				isLoading={loading}
+				searchQuery={searchQuery}
 			/>
 		</View>
 	)
@@ -177,9 +168,7 @@ const styles = StyleSheet.create({
 		marginTop: 10,
 	},
 	errorText: {
-		color: COLORS.accentRed, // Використання константи
+		color: COLORS.accentRed,
 		fontSize: 16,
 	},
-	// messageText та scrollContent більше не потрібні тут,
-	// вони тепер всередині TaskList
 })

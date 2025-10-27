@@ -1,4 +1,3 @@
-// File: components/ui/MessageBubble.jsx
 import { StyleSheet, Text, View } from 'react-native'
 
 import { COLORS } from '../../constants/colors'
@@ -6,7 +5,6 @@ import { COLORS } from '../../constants/colors'
 export default function MessageBubble({ item, currentUserId }) {
 	const isMyMessage = item.senderId === currentUserId
 
-	// Не рендеримо, якщо немає тексту повідомлення
 	if (!item.message) {
 		return null
 	}
@@ -27,7 +25,6 @@ export default function MessageBubble({ item, currentUserId }) {
 			>
 				{item.createdAt
 					? item.createdAt.toLocaleTimeString([], {
-							// Використовуємо Date об'єкт
 							hour: '2-digit',
 							minute: '2-digit',
 					  })
@@ -57,7 +54,7 @@ const styles = StyleSheet.create({
 		borderBottomLeftRadius: 2,
 	},
 	messageText: {
-		color: COLORS.buttonTextDark,
+		color: COLORS.buttonTextLight,
 		fontSize: 15,
 		marginBottom: 3,
 	},

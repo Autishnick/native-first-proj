@@ -1,4 +1,3 @@
-// File: components/ui/CategorySelector.jsx
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { COLORS } from '../../constants/colors'
 
@@ -37,7 +36,7 @@ const styles = StyleSheet.create({
 		flexDirection: 'row',
 		flexWrap: 'wrap',
 		marginBottom: 16,
-		marginTop: 8, // Додано невеликий відступ зверху
+		marginTop: 8,
 	},
 	categoryButton: {
 		backgroundColor: COLORS.background,

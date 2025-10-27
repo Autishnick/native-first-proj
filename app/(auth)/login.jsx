@@ -13,15 +13,14 @@ import {
 import AppHeader from '../../components/modules/Header'
 import { useAuth } from '../../hooks/useAuth'
 
-// Define the color palette based on the example image
 const COLORS = {
-	background: '#1A202C', // Dark blue-gray background
-	card: '#2D3748', // Slightly lighter dark for inputs/cards
-	textPrimary: '#FFFFFF', // White text
-	textSecondary: '#9CA3AF', // Light gray text
-	accentGreen: '#34D399', // Bright green from "Complete" button
-	buttonTextDark: '#1A202C', // Dark text for contrast on green button
-	border: '#4A5568', // Subtle border for inputs
+	background: '#1A202C',
+	card: '#2D3748',
+	textPrimary: '#FFFFFF',
+	textSecondary: '#9CA3AF',
+	accentGreen: '#34D399',
+	buttonTextDark: '#1A202C',
+	border: '#4A5568',
 }
 
 export default function LoginScreen() {
@@ -44,17 +43,14 @@ export default function LoginScreen() {
 		console.log('✅ Validation passed, calling login...')
 		setIsLoading(true)
 		try {
-			// Call the login function from useAuth
 			await login(email, password)
 			console.log('✅ Login successful!')
 
-			// Automatically navigate to the main screen
 			router.replace('/(main)')
 		} catch (error) {
 			console.error('❌ Login failed:', error)
 			console.error('Error message:', error.message)
 
-			// Display a user-friendly error message
 			Alert.alert('Login Failed', error.message || 'Invalid credentials.')
 		} finally {
 			setIsLoading(false)
@@ -64,7 +60,6 @@ export default function LoginScreen() {
 
 	return (
 		<>
-			{/* Set status bar to light text for the dark background */}
 			<StatusBar barStyle='light-content' />
 			<AppHeader />
 			<View style={styles.container}>
@@ -73,7 +68,7 @@ export default function LoginScreen() {
 				<TextInput
 					style={styles.input}
 					placeholder='Email'
-					placeholderTextColor={COLORS.textSecondary} // Set placeholder color
+					placeholderTextColor={COLORS.textSecondary}
 					value={email}
 					onChangeText={setEmail}
 					keyboardType='email-address'
@@ -82,7 +77,7 @@ export default function LoginScreen() {
 				<TextInput
 					style={styles.input}
 					placeholder='Password'
-					placeholderTextColor={COLORS.textSecondary} // Set placeholder color
+					placeholderTextColor={COLORS.textSecondary}
 					value={password}
 					onChangeText={setPassword}
 					secureTextEntry
@@ -91,7 +86,7 @@ export default function LoginScreen() {
 				{isLoading ? (
 					<ActivityIndicator
 						size='large'
-						color={COLORS.accentGreen} // Use accent color
+						color={COLORS.accentGreen}
 						style={{ marginTop: 20 }}
 					/>
 				) : (
@@ -116,35 +111,35 @@ const styles = StyleSheet.create({
 		flex: 1,
 		padding: 25,
 		justifyContent: 'center',
-		backgroundColor: COLORS.background, // Dark background
+		backgroundColor: COLORS.background,
 	},
 	header: {
 		fontSize: 28,
 		fontWeight: 'bold',
 		marginBottom: 30,
 		textAlign: 'center',
-		color: COLORS.textPrimary, // White text
+		color: COLORS.textPrimary,
 	},
 	input: {
 		height: 50,
-		borderColor: COLORS.border, // Subtle border
+		borderColor: COLORS.border,
 		borderWidth: 1,
 		marginBottom: 15,
 		paddingHorizontal: 15,
 		borderRadius: 8,
-		backgroundColor: COLORS.card, // Dark input background
-		color: COLORS.textPrimary, // White text color when typing
+		backgroundColor: COLORS.card,
+		color: COLORS.textPrimary,
 		fontSize: 16,
 	},
 	loginButton: {
-		backgroundColor: COLORS.accentGreen, // Accent green background
+		backgroundColor: COLORS.accentGreen,
 		padding: 15,
 		borderRadius: 8,
 		alignItems: 'center',
 		marginTop: 10,
 	},
 	loginButtonText: {
-		color: COLORS.buttonTextDark, // Dark text for contrast
+		color: COLORS.buttonTextDark,
 		fontSize: 18,
 		fontWeight: 'bold',
 	},
@@ -154,11 +149,11 @@ const styles = StyleSheet.create({
 		marginTop: 20,
 	},
 	secondaryText: {
-		color: COLORS.textSecondary, // Light gray text
+		color: COLORS.textSecondary,
 		fontSize: 16,
 	},
 	link: {
-		color: COLORS.accentGreen, // Accent green text for links
+		color: COLORS.accentGreen,
 		fontWeight: 'bold',
 		fontSize: 16,
 	},

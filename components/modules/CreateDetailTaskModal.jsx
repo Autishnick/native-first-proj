@@ -1,4 +1,3 @@
-// File: components/modules/CreateTaskModal.jsx
 import { useState } from 'react'
 import {
 	Alert,
@@ -11,8 +10,8 @@ import {
 } from 'react-native'
 import { CATEGORIES_DATA } from '../../constants/CategoriesData'
 import { COLORS } from '../../constants/colors'
-import CategorySelector from '../ui/CategorySelector' // Імпорт
-import FormField from '../ui/FormField' // Імпорт
+import CategorySelector from '../ui/CategorySelector'
+import FormField from '../ui/FormField'
 
 const CATEGORIES = CATEGORIES_DATA.map(item => item.name)
 
@@ -47,7 +46,7 @@ export default function CreateTaskModal({ visible, onClose, onSubmit }) {
 				location: locationName.trim(),
 				address: address.trim(),
 			})
-			handleClose() // Закриваємо тільки після успішної відправки
+			handleClose()
 		} catch (error) {
 			console.error('Modal submission error:', error)
 			Alert.alert('Error', 'Failed to create task. Please try again.')
@@ -57,15 +56,14 @@ export default function CreateTaskModal({ visible, onClose, onSubmit }) {
 	}
 
 	const handleClose = () => {
-		// Очистка полів
 		setTitle('')
 		setDescription('')
 		setCategory('General')
 		setPayment('')
 		setLocationName('')
 		setAddress('')
-		setIsSubmitting(false) // Скидаємо стан відправки
-		onClose() // Викликаємо функцію закриття з пропсів
+		setIsSubmitting(false)
+		onClose()
 	}
 
 	return (
@@ -94,7 +92,7 @@ export default function CreateTaskModal({ visible, onClose, onSubmit }) {
 							placeholder='Describe the task in detail...'
 							multiline={true}
 							numberOfLines={4}
-							style={styles.textArea} // Передаємо додатковий стиль
+							style={styles.textArea}
 						/>
 
 						<Text style={styles.label}>Category</Text>
@@ -180,9 +178,8 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		color: COLORS.textPrimary,
 	},
-	// Стилі label та input тепер у FormField, але textArea залишається
+
 	label: {
-		// Стиль для заголовка 'Category'
 		fontSize: 16,
 		fontWeight: '600',
 		color: COLORS.textPrimary,
@@ -221,5 +218,4 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		fontWeight: 'bold',
 	},
-	// Стилі для CategorySelector тепер знаходяться всередині компонента
 })

@@ -1,11 +1,9 @@
-// File: components/ui/TaskDetailsDisplay.jsx
 import { doc, getDoc } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
-import { COLORS } from '../../constants/colors' // Adjust path if needed
-import { db } from '../../src/firebase/config' // Adjust path if needed
+import { COLORS } from '../../constants/colors'
+import { db } from '../../src/firebase/config'
 
-// Helper to format date
 const formatDate = timestamp => {
 	if (!timestamp?.seconds) return 'N/A'
 	try {
@@ -15,7 +13,6 @@ const formatDate = timestamp => {
 	}
 }
 
-// Hook to fetch author nickname (optional, can be kept inside or passed as prop)
 const useTaskAuthor = createdBy => {
 	const [authorNickname, setAuthorNickname] = useState('Loading...')
 	useEffect(() => {
@@ -87,7 +84,6 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 	},
 	messageText: {
-		// Added for the !task case
 		textAlign: 'center',
 		color: COLORS.textSecondary,
 		marginTop: 60,

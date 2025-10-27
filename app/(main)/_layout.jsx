@@ -8,10 +8,10 @@ export default function MainTabLayout() {
 		<Tabs
 			screenOptions={{
 				header: () => <AppHeader />,
-				tabBarActiveTintColor: '#2ECC71', // Колір активної іконки
+				tabBarActiveTintColor: '#2ECC71',
 				tabBarInactiveTintColor: 'gray',
 				tabBarStyle: {
-					backgroundColor: '#0B1A2A', // Колір фону панелі вкладок
+					backgroundColor: '#0B1A2A',
 					borderTopColor: '#1C3B5A',
 				},
 			}}

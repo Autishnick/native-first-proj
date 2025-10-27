@@ -1,4 +1,3 @@
-// File: app/(main)/messages/[TaskId].jsx
 import { useLocalSearchParams, useNavigation } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
@@ -13,7 +12,7 @@ import {
 	View,
 } from 'react-native'
 
-import MessageBubble from '../../../components/ui/MessageBubble' // Імпортуємо новий компонент
+import MessageBubble from '../../../components/ui/MessageBubble'
 import { useAuth } from '../../../hooks/useAuth'
 import { useTaskMessages } from '../../../hooks/useTaskMessages'
 import { createNotification } from '../../../utils/firebaseUtils'
@@ -69,7 +68,6 @@ export default function ChatDetailScreen() {
 		}
 	}
 
-	// Використовуємо MessageBubble у renderItem
 	const renderMessage = ({ item }) => (
 		<MessageBubble item={item} currentUserId={userId} />
 	)
@@ -100,7 +98,7 @@ export default function ChatDetailScreen() {
 		>
 			<FlatList
 				data={messages}
-				renderItem={renderMessage} // Використовуємо оновлену функцію
+				renderItem={renderMessage}
 				keyExtractor={item => item.id}
 				inverted={true}
 				style={styles.messagesList}

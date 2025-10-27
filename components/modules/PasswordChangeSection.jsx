@@ -1,4 +1,3 @@
-// File: components/modules/PasswordChangeSection.jsx
 import { useState } from 'react'
 import {
 	ActivityIndicator,
@@ -35,9 +34,7 @@ export default function PasswordChangeSection({ onChangePassword, onCancel }) {
 
 		setIsChangingPassword(true)
 		try {
-			// Викликаємо функцію, передану через пропси
 			await onChangePassword(currentPassword, newPassword)
-			// Очистка та закриття обробляється в батьківському компоненті (AccountScreen)
 		} catch (error) {
 			setPasswordError(error.message)
 		} finally {
@@ -85,7 +82,7 @@ export default function PasswordChangeSection({ onChangePassword, onCancel }) {
 					<Text style={styles.saveButtonText}>Save New Password</Text>
 				)}
 			</TouchableOpacity>
-			{/* Кнопка Cancel викликає функцію onCancel з AccountScreen */}
+
 			<TouchableOpacity style={styles.cancelButton} onPress={onCancel}>
 				<Text style={styles.cancelButtonText}>Cancel</Text>
 			</TouchableOpacity>
@@ -118,13 +115,13 @@ const styles = StyleSheet.create({
 		marginTop: 5,
 	},
 	saveButtonText: {
-		color: '#FFFFFF', // Використовуємо білий для кращого контрасту
+		color: '#FFFFFF',
 		fontSize: 18,
 		fontWeight: 'bold',
 	},
 	cancelButton: {
 		width: '100%',
-		backgroundColor: '#4A5568', // Сірий колір для Cancel
+		backgroundColor: '#4A5568',
 		padding: 15,
 		borderRadius: 8,
 		alignItems: 'center',

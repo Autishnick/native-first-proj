@@ -1,4 +1,3 @@
-// File: components/modules/EmployerBidderList.jsx
 import { collection, getDocs, query, where } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import {
@@ -9,10 +8,9 @@ import {
 	View,
 } from 'react-native'
 import { COLORS } from '../../constants/colors'
-import { db } from '../../src/firebase/config' // Adjust path
-import BidderCard from '../ui/BidderCard' // Import BidderCard
+import { db } from '../../src/firebase/config'
+import BidderCard from '../ui/BidderCard'
 
-// Optional Hook to fetch bidders (can be kept inline if preferred)
 const useTaskBidders = (taskId, userId) => {
 	const [bidders, setBidders] = useState([])
 	const [loading, setLoading] = useState(true)
@@ -27,12 +25,11 @@ const useTaskBidders = (taskId, userId) => {
 		const fetchBids = async () => {
 			setLoading(true)
 			try {
-				// Fetch bid notifications for this task addressed to the employer
 				const q = query(
 					collection(db, 'notifications'),
 					where('taskId', '==', taskId),
 					where('recipientId', '==', userId),
-					where('type', '==', 'new_bid') // Filter only new_bid types
+					where('type', '==', 'new_bid')
 				)
 				const snapshot = await getDocs(q)
 
@@ -41,18 +38,10 @@ const useTaskBidders = (taskId, userId) => {
 					...doc.data(),
 				}))
 
-				// Optional: Fetch additional user details if needed (like avatar)
-				// This part can be simplified if senderName is always reliable
 				const biddersPromises = bidNotifications.map(async bid => {
-					// You might already have senderName in the bid notification
-					// If not, fetch user doc (consider performance for many bids)
-					// const userDocRef = doc(db, 'users', bid.senderId);
-					// const userDoc = await getDoc(userDocRef);
-					// const userData = userDoc.exists() ? userDoc.data() : {};
 					return {
 						...bid,
-						proposalMessage: bid.message, // Assuming message is the proposal
-						// avatarUrl: userData.avatarUrl || null,
+						proposalMessage: bid.message,
 					}
 				})
 
@@ -60,7 +49,6 @@ const useTaskBidders = (taskId, userId) => {
 				setBidders(combinedBidders)
 			} catch (error) {
 				console.error('Error fetching bids and user details:', error)
-				// Handle error state if needed
 			} finally {
 				setLoading(false)
 			}
@@ -94,11 +82,11 @@ export default function EmployerBidderList({
 					horizontal
 					showsHorizontalScrollIndicator={false}
 					style={styles.horizontalScroll}
-					contentContainerStyle={{ paddingRight: 16 }} // Ensure last card isn't cut off
+					contentContainerStyle={{ paddingRight: 16 }}
 				>
 					{bidders.map(bid => (
 						<BidderCard
-							key={bid.id} // Use notification ID as key
+							key={bid.id}
 							bid={bid}
 							onAssign={onAssign}
 							onDecline={onDecline}
@@ -116,22 +104,21 @@ export default function EmployerBidderList({
 const styles = StyleSheet.create({
 	bidSection: {
 		backgroundColor: COLORS.bidSection,
-		paddingTop: 16, // Reduced top padding
-		paddingBottom: 34, // Safe area
+		paddingTop: 16,
+		paddingBottom: 34,
 		borderTopLeftRadius: 20,
 		borderTopRightRadius: 20,
-		marginTop: 'auto', // Push to bottom
+		marginTop: 'auto',
 	},
 	bidLabel: {
 		color: COLORS.textPrimary,
 		fontSize: 18,
 		fontWeight: '600',
-		marginBottom: 15, // Increased margin
-		paddingHorizontal: 16, // Add horizontal padding to label
+		marginBottom: 15,
+		paddingHorizontal: 16,
 	},
 	horizontalScroll: {
-		// marginHorizontal removed, padding added below
-		paddingLeft: 16, // Start padding for the first card
+		paddingLeft: 16,
 	},
 	noBidsText: {
 		color: COLORS.textSecondary,

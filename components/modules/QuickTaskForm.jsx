@@ -1,4 +1,3 @@
-// File: components/modules/QuickTaskForm.jsx
 import { useState } from 'react'
 import {
 	ActivityIndicator,
@@ -23,11 +22,9 @@ export default function QuickTaskForm({ onSubmit }) {
 
 		setIsSubmitting(true)
 		try {
-			// Pass the title back to the parent component for submission
 			await onSubmit(text)
-			setText('') // Clear input on success
+			setText('')
 		} catch (error) {
-			// Error handling might be done in the parent, or display a generic message here
 			Alert.alert('Error', 'Failed to post quick task.')
 		} finally {
 			setIsSubmitting(false)
@@ -48,7 +45,7 @@ export default function QuickTaskForm({ onSubmit }) {
 			<TouchableOpacity
 				style={[styles.quickButton, isSubmitting && styles.quickButtonDisabled]}
 				onPress={handleCreateTask}
-				disabled={isSubmitting || !text.trim()} // Disable if empty or submitting
+				disabled={isSubmitting || !text.trim()}
 			>
 				{isSubmitting ? (
 					<ActivityIndicator color={COLORS.buttonTextDark} />
@@ -71,7 +68,7 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.1,
 		shadowRadius: 10,
 		elevation: 5,
-		marginBottom: 20, // Add margin if needed
+		marginBottom: 20,
 	},
 	input: {
 		height: 50,
@@ -82,7 +79,7 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		backgroundColor: COLORS.background,
 		marginBottom: 16,
-		color: COLORS.textPrimary, // Ensure text color is set
+		color: COLORS.textPrimary,
 	},
 	quickButton: {
 		backgroundColor: COLORS.accentGreen,

@@ -1,9 +1,7 @@
-// File: hooks/useChatList.js
 import { collection, onSnapshot, query, where } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import { db } from '../src/firebase/config'
 
-// Цей хук отримує ВСІ повідомлення, де користувач є відправником АБО отримувачем
 export const useChatList = currentUserId => {
 	const [messages, setMessages] = useState([])
 	const [loading, setLoading] = useState(true)
@@ -16,13 +14,11 @@ export const useChatList = currentUserId => {
 		}
 		setLoading(true)
 
-		// 1. Запит: Всі повідомлення, відправлені користувачем (Вихідні)
 		const q1 = query(
 			collection(db, 'notifications'),
 			where('senderId', '==', currentUserId)
 		)
 
-		// 2. Запит: Всі повідомлення, отримані користувачем (Вхідні)
 		const q2 = query(
 			collection(db, 'notifications'),
 			where('recipientId', '==', currentUserId)
@@ -33,7 +29,6 @@ export const useChatList = currentUserId => {
 		let unsub2Done = false
 
 		const mergeResults = () => {
-			// Чекаємо, поки обидва запити повернуться
 			if (!unsub1Done || !unsub2Done) return
 
 			const finalMessages = allMessages.flat()

@@ -1,8 +1,7 @@
-// File: components/modules/PersonalInfoSection.jsx
 import { useEffect, useState } from 'react'
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { formatDate, formatRole } from '../../utils/formatters' // Використовуємо винесені функції
-import InfoRow from '../ui/InfoRow' // Використовуємо винесений компонент
+import { formatDate, formatRole } from '../../utils/formatters'
+import InfoRow from '../ui/InfoRow'
 
 import { COLORS } from '../../constants/colors'
 
@@ -23,7 +22,7 @@ export default function PersonalInfoSection({
 	const handleEditToggle = () => {
 		const nextState = !isEditMode
 		setIsEditMode(nextState)
-		// Якщо виходимо з режиму редагування, скидаємо ім'я
+
 		if (!nextState && profile) {
 			setDisplayName(profile.displayName || '')
 		}
@@ -37,7 +36,7 @@ export default function PersonalInfoSection({
 		try {
 			await updateUserProfile({ displayName: displayName.trim() })
 			Alert.alert('Success', 'Your profile has been updated.')
-			setIsEditMode(false) // Виходимо з режиму редагування
+			setIsEditMode(false)
 		} catch (error) {
 			Alert.alert('Error', error.message)
 		}
@@ -109,7 +108,7 @@ const styles = StyleSheet.create({
 		borderRadius: 10,
 		borderColor: COLORS.infoBoxBorder,
 		borderWidth: 1,
-		overflow: 'hidden', // Щоб лінії не виходили за межі
+		overflow: 'hidden',
 	},
 	saveButton: {
 		backgroundColor: COLORS.accentGreen,

@@ -1,4 +1,3 @@
-// File: components/modules/TaskList.jsx
 import {
 	ActivityIndicator,
 	FlatList,
@@ -6,8 +5,8 @@ import {
 	Text,
 	View,
 } from 'react-native'
-import { COLORS } from '../../constants/colors' // Імпорт кольорів
-import TaskItem from '../ui/TaskItem' // Переконайтесь, що шлях правильний
+import { COLORS } from '../../constants/colors'
+import TaskItem from '../ui/TaskItem'
 
 const TaskList = ({ tasks, onTaskPress, isLoading, searchQuery }) => {
 	const renderEmptyList = () => {
@@ -39,26 +38,26 @@ const TaskList = ({ tasks, onTaskPress, isLoading, searchQuery }) => {
 			)}
 			keyExtractor={item => item.id}
 			ListEmptyComponent={renderEmptyList}
-			ListFooterComponent={renderFooter} // Показує індикатор під час дозавантаження
+			ListFooterComponent={renderFooter}
 			contentContainerStyle={styles.listContent}
-			style={styles.listStyle} // Стиль для самого FlatList
+			style={styles.listStyle}
 		/>
 	)
 }
 
 const styles = StyleSheet.create({
 	listStyle: {
-		flex: 1, // Важливо, щоб FlatList займав доступний простір
+		flex: 1,
 	},
 	listContent: {
 		paddingBottom: 20,
 		paddingHorizontal: 15,
 	},
 	emptyContainer: {
-		flex: 1, // Щоб текст був по центру, якщо список займає весь екран
+		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginTop: 50, // Відступ зверху
+		marginTop: 50,
 	},
 	emptyText: {
 		fontSize: 16,
