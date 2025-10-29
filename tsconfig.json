@@ -11,8 +11,9 @@
 		"**/*.tsx",
 		".expo/types/**/*.ts",
 		"expo-env.d.ts",
-		"app/_layout.jsx",
-		"app/(main)/_layout.jsx",
-		"app/(main)/index.jsx"
+		"app/_layout.tsx",
+		"app/(main)/_layout.tsx",
+		"app/(main)/index.tsx",
+		"utils/FilterSection.tsx"
 	]
 }
