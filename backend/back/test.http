@@ -1,0 +1,135 @@
+### =======================================
+### GLOBAL VARIABLES
+### =======================================
+@baseUrl = http://localhost:3000
+
+@firebaseApiKey =AIzaSyCK_6Lz4lPmp1HpZr5NyGKX8jSd6kkqE4w
+
+@firebaseAuthUrl = https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={{firebaseApiKey}}
+
+@clientEmail = blabla@ua.ua
+@clientPassword = 123456
+
+@workerEmail = vladislavpro100igrok@gmail.com
+@workerPassword = 111111
+
+### =======================================
+### 1. AUTH FLOW: LOGIN
+### =======================================
+
+### 1A. Login Client
+# @name loginClient
+POST {{firebaseAuthUrl}}
+Content-Type: application/json
+
+{
+  "email": "{{clientEmail}}",
+  "password": "{{clientPassword}}",
+  "returnSecureToken": true
+}
+
+# Store client token
+@clientToken = {{loginClient.response.body.$.idToken}}
+
+### ---------------------------------------
+
+### 1B. Login Worker
+# @name loginWorker
+POST {{firebaseAuthUrl}}
+Content-Type: application/json
+
+{
+  "email": "{{workerEmail}}",
+  "password": "{{workerPassword}}",
+  "returnSecureToken": true
+}
+
+# Store worker token
+@workerToken = {{loginWorker.response.body.$.idToken}}
+
+### =======================================
+### 2. USERS API: Test /users/me
+### =======================================
+
+### 2A. Client gets their own profile
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{clientToken}}
+
+### ---------------------------------------
+
+### 2B. Client updates their profile
+PATCH {{baseUrl}}/users/me
+Authorization: Bearer {{clientToken}}
+Content-Type: application/json
+
+{
+  "displayName": "Test Client (Updated)"
+}
+
+### =======================================
+### 3. FULL FLOW: TASKS & NOTIFICATIONS
+### =======================================
+
+### 3A. Client creates a Task
+# @name createTask
+POST {{baseUrl}}/tasks
+Authorization: Bearer {{clientToken}}
+Content-Type: application/json
+
+{
+  "title": "My Authenticated Task",
+  "description": "Need to clean my house",
+  "category": "Home Cleaning",
+  "payment": 50,
+  "dueDate": "2025-11-10T17:00:00.000Z",
+  "location": "123 Main St, Lviv"
+}
+
+### ---------------------------------------
+
+### 3B. Worker places a Bid
+# @name addBid
+POST {{baseUrl}}/tasks/{{createTask.response.body.$.id}}/bids
+Authorization: Bearer {{workerToken}}
+Content-Type: application/json
+
+{
+  "bidAmount": 45
+}
+
+### ---------------------------------------
+
+### 3C. Pause (for Firestore indexing)
+# @name pauseForFirestore
+# @prompt(Wait 1 sec for Firestore to index...)
+### ---------------------------------------
+
+### 3D. Client checks their Notifications
+# @name getNotifications
+GET {{baseUrl}}/notifications
+Authorization: Bearer {{clientToken}}
+
+### ---------------------------------------
+
+### 3E. Client marks notification as read
+@notificationId = {{getNotifications.response.body.$[0].id}}
+
+PATCH {{baseUrl}}/notifications/{{notificationId}}
+Authorization: Bearer {{clientToken}}
+Content-Type: application/json
+
+{
+  "read": true
+}
+
+### ---------------------------------------
+
+### 3F. (Verification) Client checks notifications again
+GET {{baseUrl}}/notifications
+Authorization: Bearer {{clientToken}}
+
+### ---------------------------------------
+
+### 3G. (Cleanup) Client deletes the Task
+DELETE {{baseUrl}}/tasks/{{createTask.response.body.$.id}}
+Authorization: Bearer {{clientToken}}
