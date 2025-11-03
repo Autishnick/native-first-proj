@@ -1,4 +1,3 @@
-// Per your request, all code and comments are in English.
 import { Module } from '@nestjs/common';
 import { CategoriesController } from './categories.controller';
 import { CategoriesService } from './categories.service';

@@ -50,8 +50,6 @@ const LoginScreen: React.FC = () => {
 		setIsLoading(true)
 		try {
 			await login(email, password)
-			// ❌ ВИДАЛІТЬ ЦЕЙ РЯДОК ❌
-			// router.replace({ pathname: '/(main)' })
 		} catch (error: unknown) {
 			const message =
 				error &&

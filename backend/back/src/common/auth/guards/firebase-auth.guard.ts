@@ -21,7 +21,6 @@ export class FirebaseAuthGuard implements CanActivate {
     try {
       const decodedToken = await admin.auth().verifyIdToken(idToken);
 
-      // Отримуємо дані користувача з Firestore
       const userDoc = await admin
         .firestore()
         .collection('users')
@@ -30,7 +29,6 @@ export class FirebaseAuthGuard implements CanActivate {
 
       const userData = userDoc.data();
 
-      // Додаємо користувача до request
       request.user = {
         uid: decodedToken.uid,
         email: decodedToken.email,

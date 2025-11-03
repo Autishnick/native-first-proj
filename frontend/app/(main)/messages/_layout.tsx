@@ -18,7 +18,14 @@ const MessagesLayout: React.FC = () => {
 
 	return (
 		<Stack screenOptions={screenOptions}>
-			<Stack.Screen name='index' options={{ title: 'Messages' }} />
+			<Stack.Screen
+				name='index'
+				options={{
+					title: 'Messages',
+					headerLeft: () => null,
+					headerShown: false,
+				}}
+			/>
 			<Stack.Screen name='[TaskId]' options={{ title: 'Chat' }} />
 		</Stack>
 	)

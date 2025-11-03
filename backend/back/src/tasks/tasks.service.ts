@@ -1,4 +1,3 @@
-// Per your request, all code and comments are in English.
 import {
   Injectable,
   Logger,

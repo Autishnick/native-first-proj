@@ -18,10 +18,8 @@ import { COLORS } from '../../constants/colors'
 import { useAuth } from '../../hooks/useAuthContext'
 import { api } from '../../src/api/client'
 
-// Define types for mutation data
 interface UpdateProfileData {
 	displayName: string
-	// Add other fields that can be updated
 }
 
 interface ChangePasswordData {
@@ -35,18 +33,16 @@ export default function AccountScreen() {
 	const [isPasswordSectionVisible, setIsPasswordSectionVisible] =
 		useState(false)
 
-	// Mutation for updating user profile
 	const {
 		mutateAsync: updateProfileMutate,
-		// We keep this hook even if not passed down,
-		// in case you want to add a top-level loader later
+
 		isPending: isUpdatingProfile,
 	} = useMutation<void, AxiosError, UpdateProfileData>({
 		mutationFn: (profileData: UpdateProfileData) =>
 			api.patch('/profile', profileData),
 		onSuccess: () => {
 			Alert.alert('Success', 'Profile updated successfully.')
-			// Invalidate the profile query to refetch data
+
 			if (user) {
 				queryClient.invalidateQueries({ queryKey: ['profile', user.uid] })
 			}
@@ -58,10 +54,9 @@ export default function AccountScreen() {
 		},
 	})
 
-	// Mutation for changing password
 	const {
 		mutateAsync: changePasswordMutate,
-		// We keep this hook even if not passed down
+
 		isPending: isChangingPassword,
 	} = useMutation<void, AxiosError, ChangePasswordData>({
 		mutationFn: (passwordData: ChangePasswordData) =>
@@ -81,23 +76,19 @@ export default function AccountScreen() {
 		currentPassword: string,
 		newPassword: string
 	) => {
-		// Prevent double-submission if already changing
 		if (isChangingPassword) return
 		try {
 			await changePasswordMutate({ currentPassword, newPassword })
 		} catch (error) {
-			// Error is already handled by the mutation's onError
 			console.error('Password change error:', error)
 		}
 	}
 
 	const handleProfileUpdateSubmit = async (data: UpdateProfileData) => {
-		// Prevent double-submission if already updating
 		if (isUpdatingProfile) return
 		try {
 			await updateProfileMutate(data)
 		} catch (error) {
-			// Error is already handled by the mutation's onError
 			console.error('Profile update error:', error)
 		}
 	}

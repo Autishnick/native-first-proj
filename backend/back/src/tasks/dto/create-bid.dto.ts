@@ -1,4 +1,3 @@
-// Always write all code in English, including text in the code.
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateBidDto {
@@ -8,7 +7,7 @@ export class CreateBidDto {
 
   @IsString()
   @IsNotEmpty()
-  workerId: string; // UID of the worker placing the bid
+  workerId: string;
 
   @IsString()
   @IsNotEmpty()

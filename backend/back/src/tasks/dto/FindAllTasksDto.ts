@@ -1,7 +1,5 @@
-// Per your request, all code and comments are in English.
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 
-// This DTO defines the optional query parameters for GET /tasks
 export class FindAllTasksDto {
   @IsString()
   @IsOptional()

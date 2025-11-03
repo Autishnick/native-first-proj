@@ -1,172 +1,113 @@
-import { Ionicons } from '@expo/vector-icons'
-import { useRouter } from 'expo-router'
-import React, { FC, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useNavigation, useRouter } from 'expo-router'
+import React, { useEffect } from 'react'
 import {
 	ActivityIndicator,
 	FlatList,
-	ListRenderItemInfo,
-	StatusBar,
 	StyleSheet,
 	Text,
 	TouchableOpacity,
 	View,
 } from 'react-native'
+import { COLORS } from '../../../constants/colors'
 import { useAuth } from '../../../hooks/useAuthContext'
-import {
-	ChatMessage,
-	useChatList,
-	UseChatListReturn,
-} from '../../../hooks/useChatList'
+import { api } from '../../../src/api/client'
 
-const COLORS: Record<string, string> = {
-	background: '#1A202C',
-	card: '#2D3748',
-	textPrimary: '#FFFFFF',
-	textSecondary: '#9CA3AF',
-	accentGreen: '#34D399',
-	unreadBackground: '#374151',
-	readBackground: '#2D3748',
-	border: '#4A5568',
-	buttonTextDark: '#1A202C',
+interface ChatRoom {
+	id: string
+	participants: string[]
+	participantDetails: { uid: string; displayName: string }[]
+	lastMessage: { text: string; createdAt: string } | null
+	taskId: string
 }
 
-interface ChatGroup {
-	chatId: string
-	otherUserId: string
-	otherUserName: string
-	lastMessage: ChatMessage
-	unreadCount: number
+const fetchChats = async (): Promise<ChatRoom[]> => {
+	const { data } = await api.get('/chats')
+	return data
 }
 
-const ChatListScreen: FC = () => {
-	const { user } = useAuth()
-	const userId = user?.uid
+export default function ChatListScreen() {
 	const router = useRouter()
+	const navigation = useNavigation()
+	const { user } = useAuth()
 
-	const { messages: allMessages, loading } = useChatList(
-		userId
-	) as UseChatListReturn
+	const {
+		data: chats = [],
+		isLoading,
+		error,
+	} = useQuery<ChatRoom[]>({
+		queryKey: ['chats', user?.uid],
+		queryFn: fetchChats,
+		enabled: !!user,
+	})
 
-	const chatGroups = useMemo<ChatGroup[]>(() => {
-		if (!allMessages || allMessages.length === 0) {
-			return []
-		}
-
-		const groups = new Map<string, ChatGroup>()
-
-		allMessages.forEach((msg: ChatMessage) => {
-			const chatId = msg.taskId
-			if (!chatId) return
-
-			const otherPersonId =
-				msg.senderId === userId ? msg.recipientId : msg.senderId
-			const otherPersonName =
-				msg.senderId === userId ? msg.recipientName : msg.senderName
-
-			if (!groups.has(chatId)) {
-				groups.set(chatId, {
-					chatId,
-					otherUserId: otherPersonId,
-					otherUserName: otherPersonName || 'Chat',
-					lastMessage: msg,
-					unreadCount: 0,
-				})
-			} else {
-				const chat = groups.get(chatId)
-
-				const newMsgTime = msg.createdAt?.toDate()?.getTime() || 0
-				const lastMsgTime =
-					chat?.lastMessage.createdAt?.toDate()?.getTime() || 0
-
-				if (chat && newMsgTime > lastMsgTime) {
-					chat.lastMessage = msg
-				}
-			}
-
-			const chat = groups.get(chatId)
-			if (chat && !msg.read && msg.recipientId === userId) {
-				chat.unreadCount++
-			}
+	useEffect(() => {
+		navigation.setOptions({
+			title: 'Messages',
+			headerLeft: () => null,
 		})
+	}, [navigation])
 
-		return Array.from(groups.values()).sort(
-			(a, b) =>
-				(b.lastMessage.createdAt?.toDate()?.getTime() || 0) -
-				(a.lastMessage.createdAt?.toDate()?.getTime() || 0)
-		)
-	}, [allMessages, userId])
+	const handleChatPress = (chat: ChatRoom) => {
+		const otherUser = chat.participantDetails.find(p => p.uid !== user?.uid)
+		const chatTitle = otherUser?.displayName || 'Chat'
 
-	const handlePressChat = (chat: ChatGroup): void => {
 		router.push({
 			pathname: '/messages/[TaskId]',
 			params: {
-				TaskId: chat.chatId,
-				otherUserId: chat.otherUserId,
-				otherUserName: chat.otherUserName,
+				TaskId: chat.id,
+				chatTitle: chatTitle,
 			},
 		})
 	}
 
-	const renderChatItem = ({ item }: ListRenderItemInfo<ChatGroup>) => {
-		const lastMsg = item.lastMessage
-		const isMyLastMessage = lastMsg.senderId === userId
-		const time =
-			lastMsg.createdAt?.toDate()?.toLocaleTimeString([], {
-				hour: '2-digit',
-				minute: '2-digit',
-			}) || ''
-
+	if (isLoading) {
 		return (
-			<TouchableOpacity
-				style={[styles.item, item.unreadCount > 0 && styles.unread]}
-				onPress={() => handlePressChat(item)}
-			>
-				<View style={styles.avatar}>
-					<Ionicons
-						name='chatbubbles-outline'
-						size={24}
-						color={COLORS.accentGreen}
-					/>
-				</View>
-				<View style={styles.chatContent}>
-					<Text style={styles.chatName}>{item.otherUserName}</Text>
-					<Text style={styles.messageText} numberOfLines={1}>
-						{isMyLastMessage ? 'You: ' : ''}
-						{lastMsg.type === 'new_bid'
-							? `Sent a bid: $${lastMsg.bidAmount || 0}`
-							: lastMsg.message}
-					</Text>
-				</View>
-				<View style={styles.chatMeta}>
-					<Text style={styles.timeText}>{time}</Text>
-					{item.unreadCount > 0 && (
-						<View style={styles.unreadBadge}>
-							<Text style={styles.unreadText}>{item.unreadCount}</Text>
-						</View>
-					)}
-				</View>
-			</TouchableOpacity>
-		)
-	}
-
-	if (loading) {
-		return (
-			<View style={styles.loadingContainer}>
+			<View style={[styles.centered, styles.container]}>
 				<ActivityIndicator size='large' color={COLORS.accentGreen} />
 			</View>
 		)
 	}
 
+	if (error) {
+		return (
+			<View style={[styles.centered, styles.container]}>
+				<Text style={styles.errorText}>Error fetching chats.</Text>
+			</View>
+		)
+	}
+
 	return (
-		<View style={styles.container}>
-			<StatusBar barStyle='light-content' />
-			<FlatList<ChatGroup>
-				data={chatGroups}
-				renderItem={renderChatItem}
-				keyExtractor={item => item.chatId}
-				ListEmptyComponent={<Text style={styles.emptyText}>No chats yet.</Text>}
-			/>
-		</View>
+		<FlatList
+			data={chats}
+			style={styles.container}
+			keyExtractor={item => item.id}
+			renderItem={({ item }) => {
+				const otherUser = item.participantDetails.find(p => p.uid !== user?.uid)
+
+				return (
+					<TouchableOpacity
+						style={styles.chatItem}
+						onPress={() => handleChatPress(item)}
+					>
+						<View style={styles.avatar} />
+						<View style={styles.chatInfo}>
+							<Text style={styles.userName}>
+								{otherUser?.displayName || 'Chat User'}
+							</Text>
+							<Text style={styles.lastMessage} numberOfLines={1}>
+								{item.lastMessage?.text || 'No messages yet'}
+							</Text>
+						</View>
+					</TouchableOpacity>
+				)
+			}}
+			ListEmptyComponent={
+				<View style={styles.container}>
+					<Text style={styles.errorText}>No chats found.</Text>
+				</View>
+			}
+		/>
 	)
 }
 
@@ -175,74 +116,42 @@ const styles = StyleSheet.create({
 		flex: 1,
 		backgroundColor: COLORS.background,
 	},
-	loadingContainer: {
+	centered: {
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
 		backgroundColor: COLORS.background,
 	},
-	item: {
-		padding: 15,
+	errorText: {
+		textAlign: 'center',
+		marginTop: 20,
+		color: COLORS.textSecondary,
+	},
+	chatItem: {
+		flexDirection: 'row',
+		padding: 16,
 		borderBottomWidth: 1,
 		borderBottomColor: COLORS.border,
-		flexDirection: 'row',
 		alignItems: 'center',
-		backgroundColor: COLORS.readBackground,
-	},
-	unread: {
-		backgroundColor: COLORS.unreadBackground,
 	},
 	avatar: {
-		width: 44,
-		height: 44,
-		borderRadius: 22,
-		backgroundColor: COLORS.card,
-		justifyContent: 'center',
-		alignItems: 'center',
-		marginRight: 12,
+		width: 50,
+		height: 50,
+		borderRadius: 25,
+		backgroundColor: COLORS.border,
+		marginRight: 16,
 	},
-	chatContent: {
+	chatInfo: {
 		flex: 1,
 	},
-	chatName: {
+	userName: {
 		fontSize: 16,
 		fontWeight: 'bold',
 		color: COLORS.textPrimary,
-		marginBottom: 2,
 	},
-	messageText: {
+	lastMessage: {
 		fontSize: 14,
 		color: COLORS.textSecondary,
-	},
-	chatMeta: {
-		alignItems: 'flex-end',
-		marginLeft: 10,
-	},
-	timeText: {
-		fontSize: 12,
-		color: COLORS.textSecondary,
-	},
-	unreadBadge: {
-		backgroundColor: COLORS.accentGreen,
-		borderRadius: 10,
-		minWidth: 20,
-		height: 20,
-		justifyContent: 'center',
-		alignItems: 'center',
 		marginTop: 4,
 	},
-	unreadText: {
-		color: COLORS.buttonTextDark,
-		fontSize: 12,
-		fontWeight: 'bold',
-		paddingHorizontal: 5,
-	},
-	emptyText: {
-		textAlign: 'center',
-		marginTop: 50,
-		color: COLORS.textSecondary,
-		fontSize: 16,
-	},
 })
-
-export default ChatListScreen

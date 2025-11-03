@@ -1,4 +1,3 @@
-// Per your request, all code and comments are in English.
 import {
   Body,
   Controller,
@@ -81,23 +80,20 @@ export class TasksController {
     return this.tasksService.addBid(taskId, bidDataWithUser);
   }
 
-  // --- 1. ADD THIS METHOD FOR ASSIGNING A TASK ---
   @Patch(':id/assign')
   assignTask(
     @Param('id') taskId: string,
     @Body() bid: { senderId: string; senderName: string; bidId?: string },
-    @User() user: UserProfile, // Get the task owner
+    @User() user: UserProfile,
   ) {
-    // We pass the task owner's UID for a security check
     return this.tasksService.assignTask(taskId, user.uid, bid);
   }
 
-  // --- 2. ADD THIS METHOD FOR DECLINING A BID ---
   @Patch(':id/decline')
   declineBid(
     @Param('id') taskId: string,
     @Body() bid: { senderId: string; bidId?: string },
-    @User() user: UserProfile, // Get the task owner
+    @User() user: UserProfile,
   ) {
     return this.tasksService.declineBid(taskId, user.uid, bid);
   }

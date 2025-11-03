@@ -1,9 +1,8 @@
-// Always write all code in English, including text in the code.
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { FireStoreService } from 'src/common/database/firestore.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserProfile } from './entities/user.entity'; // We will create this interface
+import { UserProfile } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -13,7 +12,6 @@ export class UsersService {
     this.usersCollection = this.firebaseService.firestore.collection('users');
   }
 
-  // CREATE User
   async create(createUserDto: CreateUserDto): Promise<UserProfile> {
     const { uid, ...userData } = createUserDto;
 
@@ -29,7 +27,6 @@ export class UsersService {
     } as UserProfile;
   }
 
-  // GET All Users
   async findAll(): Promise<UserProfile[]> {
     const snapshot = await this.usersCollection.get();
     if (snapshot.empty) {
@@ -43,7 +40,6 @@ export class UsersService {
     return users;
   }
 
-  // GET User by ID (UID)
   async findOne(uid: string): Promise<UserProfile> {
     const docRef = this.usersCollection.doc(uid);
     const doc = await docRef.get();
@@ -55,14 +51,12 @@ export class UsersService {
     return { uid: doc.id, ...doc.data() } as UserProfile;
   }
 
-  // UPDATE User
   async update(
     uid: string,
     updateUserDto: UpdateUserDto,
   ): Promise<UserProfile> {
     const docRef = this.usersCollection.doc(uid);
 
-    // Check if user exists first
     const doc = await docRef.get();
     if (!doc.exists) {
       throw new NotFoundException(`User with UID ${uid} not found`);
@@ -74,7 +68,6 @@ export class UsersService {
     return { uid: updatedDoc.id, ...updatedDoc.data() } as UserProfile;
   }
 
-  // DELETE User
   async remove(uid: string): Promise<{ message: string }> {
     const docRef = this.usersCollection.doc(uid);
 

@@ -1,9 +1,6 @@
-// Always write all code in English, including text in the code.
-// Removed: doc, DocumentData, getDoc, Timestamp, useEffect, useState
 import React from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { COLORS } from '../../constants/colors'
-// Removed: db
 
 interface Task {
 	id: string
@@ -11,7 +8,7 @@ interface Task {
 	createdBy: string | null
 	createdByDisplayName: string
 	location?: string
-	dueDate: string // <-- CHANGED: Was Timestamp
+	dueDate: string
 	payment: number
 	description: string
 	[key: string]: any
@@ -21,7 +18,6 @@ interface TaskDetailsDisplayProps {
 	task: Task | null
 }
 
-// Updated function to handle a string date
 const formatDate = (dateString: string | undefined | null): string => {
 	if (!dateString) return 'N/A'
 	try {
@@ -31,10 +27,7 @@ const formatDate = (dateString: string | undefined | null): string => {
 	}
 }
 
-// Removed: useTaskAuthor hook (it's no longer needed)
-
 export default function TaskDetailsDisplay({ task }: TaskDetailsDisplayProps) {
-	// We get the name directly from the task prop
 	const authorNickname = task?.createdByDisplayName || 'Unknown'
 	const formattedDate = formatDate(task?.createdAt)
 
@@ -45,7 +38,7 @@ export default function TaskDetailsDisplay({ task }: TaskDetailsDisplayProps) {
 	return (
 		<View style={styles.taskContainer}>
 			<Text style={styles.title}>{task.title}</Text>
-			{/* Use the direct property */}
+
 			<Text style={styles.description}>Created by: {authorNickname}</Text>
 			{task.location && (
 				<Text style={styles.description}>Location: {task.location}</Text>

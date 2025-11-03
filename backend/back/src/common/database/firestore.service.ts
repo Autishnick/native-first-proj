@@ -1,4 +1,3 @@
-// Always write all code in English, including text in the code.
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
@@ -8,7 +7,6 @@ import { ServiceAccount } from 'firebase-admin';
 export class FireStoreService {
   private db: admin.firestore.Firestore;
   private _auth: admin.auth.Auth;
-  // 1. Add private property for FieldValue
   private _FieldValue: typeof admin.firestore.FieldValue;
   private readonly logger = new Logger(FireStoreService.name);
 
@@ -42,7 +40,6 @@ export class FireStoreService {
 
       this.db = admin.firestore();
       this._auth = admin.auth();
-      // 2. Initialize FieldValue here
       this._FieldValue = admin.firestore.FieldValue;
       this.logger.log('✅ Firebase Admin SDK initialized successfully.');
     } catch (error) {
@@ -67,7 +64,6 @@ export class FireStoreService {
     return this._auth;
   }
 
-  // 3. Add a public getter for FieldValue
   get FieldValue(): typeof admin.firestore.FieldValue {
     if (!this._FieldValue) {
       throw new Error('Firebase Admin SDK is not initialized.');

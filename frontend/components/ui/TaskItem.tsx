@@ -1,6 +1,4 @@
-// Always write all code in English, including text in the code.
 import { Ionicons } from '@expo/vector-icons'
-// Remove Timestamp, it's no longer needed for the interface
 import React from 'react'
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { useAuth } from '../../hooks/useAuthContext'
@@ -12,8 +10,8 @@ interface Task {
 	createdBy: string | null
 	createdByDisplayName: string
 	assignedTo: string | null
-	createdAt: string // <-- CHANGE: Was Timestamp
-	dueDate?: string // <-- CHANGE: Was Timestamp
+	createdAt: string
+	dueDate?: string
 	location?: string
 	address?: string
 	payment: number
@@ -30,7 +28,6 @@ export default function TaskItem({ task, onPress }: TaskItemProps) {
 	const userId = user?.uid
 	const isWorker = profile?.role === 'worker'
 
-	// CORRECTED: Create Date object directly from the date string
 	const creationDate = task.createdAt
 		? new Date(task.createdAt).toLocaleString()
 		: 'No date'

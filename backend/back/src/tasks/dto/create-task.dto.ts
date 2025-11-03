@@ -1,4 +1,3 @@
-// Always write all code in English, including text in the code.
 import {
   IsDateString,
   IsNotEmpty,
@@ -26,7 +25,7 @@ export class CreateTaskDto {
 
   @IsDateString()
   @IsNotEmpty()
-  dueDate: string; // Or Date, if you handle date objects
+  dueDate: string;
 
   @IsString()
   @IsNotEmpty()
@@ -36,15 +35,9 @@ export class CreateTaskDto {
   @IsOptional()
   address?: string;
 
-  // Fields like createdBy, createdByDisplayName, status, etc.,
-  // should be added by the service (ideally from auth data)
-  // For now, let's assume they come from the client for simplicity
-  // or we add them in the service.
-
-  // Let's add the required user info here for now
   @IsString()
   @IsNotEmpty()
-  createdBy: string; // User UID
+  createdBy: string;
 
   @IsString()
   @IsNotEmpty()

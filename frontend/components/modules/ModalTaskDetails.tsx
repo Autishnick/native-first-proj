@@ -1,7 +1,6 @@
-// Always write all code in English, including text in the code.
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
-// Imports for deleteDoc, updateDoc, createNotification, and db are no longer needed
+
 import React from 'react'
 import {
 	Alert,
@@ -17,9 +16,9 @@ import {
 
 import { COLORS } from '../../constants/colors'
 import { useAuth } from '../../hooks/useAuthContext'
-import { api } from '../../src/api/client' // <-- 1. Import your API client
+import { api } from '../../src/api/client'
 import { Bidder as BidderType, Task } from '../../types/task.types'
-// createNotification and db imports removed
+
 import TaskDetailsDisplay from '../ui/TaskDetailsDisplay'
 import EmployerBidderList from './EmployerBidderList'
 import WorkerBidSection from './WorkerBidSection'
@@ -44,7 +43,6 @@ export default function CustomModal({
 
 	const router = useRouter()
 
-	// --- 2. REWRITE handleAssign to use the backend API ---
 	const handleAssign = async (bid: BidderType) => {
 		if (!task) {
 			Alert.alert('Error', 'No task selected')
@@ -52,15 +50,14 @@ export default function CustomModal({
 		}
 
 		try {
-			// Call the new secure backend endpoint
 			await api.patch(`/tasks/${task.id}/assign`, {
 				senderId: bid.senderId,
 				senderName: bid.senderName,
-				bidId: bid.id, // Pass the notification ID (which is the bid.id)
+				bidId: bid.id,
 			})
 
 			Alert.alert('Success', `Task assigned to ${bid.senderName}`)
-			onClose() // Close the modal
+			onClose()
 		} catch (error: any) {
 			console.error('Error assigning task:', error)
 			const message = error.response?.data?.message || 'Failed to assign task'
@@ -68,7 +65,6 @@ export default function CustomModal({
 		}
 	}
 
-	// --- 3. REWRITE handleDecline to use the backend API ---
 	const handleDecline = async (bid: BidderType) => {
 		if (!task) {
 			Alert.alert('Error', 'No task selected')
@@ -76,15 +72,13 @@ export default function CustomModal({
 		}
 
 		try {
-			// Call the new secure backend endpoint
 			await api.patch(`/tasks/${task.id}/decline`, {
 				senderId: bid.senderId,
-				bidId: bid.id, // Pass the notification ID
+				bidId: bid.id,
 			})
 
 			Alert.alert('Declined', `Bid from ${bid.senderName} has been declined`)
-			// The backend now handles all deletions
-			onClose() // Close the modal
+			onClose()
 		} catch (error: any) {
 			console.error('Error declining bid:', error)
 			const message = error.response?.data?.message || 'Failed to decline bid'
@@ -92,21 +86,39 @@ export default function CustomModal({
 		}
 	}
 
-	const handleMessage = (bid: BidderType) => {
+	const handleMessage = async (bid: BidderType) => {
 		if (!task) {
 			Alert.alert('Error', 'Task ID not found')
 			return
 		}
-		const nameToSend = bid.senderName || `User ${bid.senderId?.substring(0, 5)}`
-		router.push({
-			pathname: '/messages/[TaskId]',
-			params: {
-				TaskId: task.id,
-				otherUserId: bid.senderId,
-				otherUserName: nameToSend,
-			},
-		})
-		onClose()
+
+		const recipientName =
+			bid.senderName || `User ${bid.senderId?.substring(0, 5)}`
+
+		try {
+			const response = await api.post('/chats/find-or-create', {
+				taskId: task.id,
+				recipientId: bid.senderId,
+				recipientName: recipientName,
+			})
+
+			const chat = response.data
+
+			router.push({
+				pathname: '/messages/[TaskId]',
+				params: {
+					TaskId: chat.id,
+
+					chatTitle: recipientName,
+				},
+			})
+			onClose()
+		} catch (error: any) {
+			console.error('Error finding or creating chat:', error)
+			const message =
+				error.response?.data?.message || 'Could not open the chat.'
+			Alert.alert('Error', message)
+		}
 	}
 
 	return (

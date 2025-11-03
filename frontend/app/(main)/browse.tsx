@@ -1,4 +1,3 @@
-// Per your request, all code and comments are in English.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import { useLocalSearchParams } from 'expo-router'
@@ -40,7 +39,6 @@ interface Task {
 	[key: string]: any
 }
 
-// ... (Interface BidData & BidPayload are correct) ...
 interface BidData {
 	taskCreatorId: string
 	taskId: string
@@ -54,7 +52,6 @@ interface BidPayload {
 	bidAmount: number
 }
 
-// ... (Component Prop Types are fine) ...
 interface FilterSectionProps {
 	categories: string[]
 	currentCategory: string
@@ -99,12 +96,10 @@ const BrowseScreen: React.FC = () => {
 	const [selectedCategory, setSelectedCategory] = useState<string>('all')
 	const [searchQuery, setSearchQuery] = useState<string>('')
 
-	// НОВИЙ ФІКС 1: Отримуємо 'user', а не 'isAuthenticated'
 	const { user, loading: authLoading } = useAuth()
 
-	// НОВИЙ ФІКС 2: Створюємо 'isAuthenticated' та 'userId' вручну з 'user'
 	const isAuthenticated = !!user
-	const userId = user?.uid // (або user?.id, залежно від вашої структури)
+	const userId = user?.uid
 
 	const CATEGORY_NAMES: string[] = CATEGORIES_DATA.map(item => item.name)
 
@@ -142,7 +137,7 @@ const BrowseScreen: React.FC = () => {
 			})
 			return data
 		},
-		// Ваш ФІКС 2 (enabled) тепер працює, бо 'isAuthenticated' визначено
+
 		enabled: !authLoading && isAuthenticated,
 	})
 
@@ -175,7 +170,6 @@ const BrowseScreen: React.FC = () => {
 	}
 
 	const handleBidSubmission = async (bidData: BidData): Promise<void> => {
-		// НОВИЙ ФІКС 3: Ця перевірка тепер працює, бо 'userId' визначено
 		if (!userId) {
 			Alert.alert('Error', 'You must be logged in to place a bid.')
 			return
@@ -197,7 +191,6 @@ const BrowseScreen: React.FC = () => {
 		}
 	}
 
-	// Ваш ФІКС 3 (loading) логічно правильний
 	if (authLoading || (isLoading && !tasks.length)) {
 		return (
 			<View style={styles.centered}>
@@ -217,7 +210,6 @@ const BrowseScreen: React.FC = () => {
 		)
 	}
 
-	// Ця перевірка тепер працює, бо 'isAuthenticated' визначено
 	if (!isAuthenticated) {
 		return (
 			<View style={styles.centered}>
@@ -233,7 +225,6 @@ const BrowseScreen: React.FC = () => {
 				visible={modalVisible}
 				onClose={() => setModalVisible(false)}
 				task={selectedTask}
-				// НОВИЙ ФІКС 4: 'userId' тепер коректно передається
 				userId={userId || ''}
 				onSubmitBid={handleBidSubmission}
 				isLoading={isSubmittingBid}

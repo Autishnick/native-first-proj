@@ -1,7 +1,7 @@
-// Per your request, all code and comments are in English.
+import { Ionicons } from '@expo/vector-icons'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
-import { useLocalSearchParams, useNavigation } from 'expo-router'
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router'
 import React, { useEffect, useRef, useState } from 'react'
 import {
 	ActivityIndicator,
@@ -22,19 +22,14 @@ import { api } from '../../../src/api/client'
 interface Message {
 	id: string
 	senderId: string
-	message: string
+	text: string
 	createdAt?: Date | string
+	type?: 'MESSAGE' | 'SYSTEM'
 	[key: string]: any
 }
 
-// FIX 1: Removed obsolete AuthHookValue interface
-// interface AuthHookValue {
-//   userId: string | null | undefined
-//   userName: string | null | undefined
-// }
-
 interface SendMessagePayload {
-	message: string
+	text: string
 }
 
 interface OptimisticMessageContext {
@@ -42,33 +37,31 @@ interface OptimisticMessageContext {
 }
 
 export default function ChatDetailScreen() {
-	const { TaskId, otherUserId, otherUserName } = useLocalSearchParams<{
+	const { TaskId, chatTitle } = useLocalSearchParams<{
 		TaskId: string
-		otherUserId: string
-		otherUserName?: string
+		chatTitle?: string
 	}>()
 
+	const chatId = TaskId
+
 	const navigation = useNavigation()
+	const router = useRouter()
 	const { user } = useAuth()
 	const queryClient = useQueryClient()
-
-	// FIX 2: Define 'userId' from the 'user' object
-	const userId = user?.uid // (or user?.id)
-
+	const userId = user?.uid
 	const [inputText, setInputText] = useState<string>('')
 	const inputRef = useRef<TextInput>(null)
 
-	// This check now works correctly
-	const isChatReady = !!userId && !!TaskId && !!otherUserId
+	const isChatReady = !!userId && !!chatId
 
 	const {
 		data: messages = [],
 		isLoading: messagesLoading,
 		error,
 	} = useQuery<Message[], AxiosError>({
-		queryKey: ['messages', TaskId],
+		queryKey: ['messages', chatId],
 		queryFn: async () => {
-			const { data } = await api.get(`/tasks/${TaskId}/messages`)
+			const { data } = await api.get(`/chats/${chatId}/messages`)
 			return data
 		},
 		enabled: isChatReady,
@@ -81,23 +74,23 @@ export default function ChatDetailScreen() {
 		SendMessagePayload,
 		OptimisticMessageContext
 	>({
-		mutationFn: payload => api.post(`/tasks/${TaskId}/messages`, payload),
+		mutationFn: payload => api.post(`/chats/${chatId}/messages`, payload),
 
 		onMutate: async newMessage => {
-			await queryClient.cancelQueries({ queryKey: ['messages', TaskId] })
+			await queryClient.cancelQueries({ queryKey: ['messages', chatId] })
 
 			const previousMessages =
-				queryClient.getQueryData<Message[]>(['messages', TaskId]) || []
+				queryClient.getQueryData<Message[]>(['messages', chatId]) || []
 
-			// This logic now works correctly
 			const optimisticMessage: Message = {
 				id: `temp-${Date.now()}`,
-				senderId: userId as string, // 'userId' is now defined
-				message: newMessage.message,
+				senderId: userId as string,
+				text: newMessage.text,
 				createdAt: new Date(),
+				type: 'MESSAGE',
 			}
 
-			queryClient.setQueryData<Message[]>(['messages', TaskId], (old = []) => [
+			queryClient.setQueryData<Message[]>(['messages', chatId], (old = []) => [
 				optimisticMessage,
 				...old,
 			])
@@ -107,24 +100,30 @@ export default function ChatDetailScreen() {
 
 		onError: (err, newMessage, context) => {
 			if (context?.previousMessages) {
-				queryClient.setQueryData(['messages', TaskId], context.previousMessages)
+				queryClient.setQueryData(['messages', chatId], context.previousMessages)
 			}
 			console.error('Failed to send message:', err)
 			alert('Error sending message.')
 		},
 
 		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: ['messages', TaskId] })
+			queryClient.invalidateQueries({ queryKey: ['messages', chatId] })
 		},
 	})
 
 	useEffect(() => {
-		if (otherUserName) {
-			navigation.setOptions({ title: `${otherUserName}` })
-		} else {
-			navigation.setOptions({ title: 'Chat' })
-		}
-	}, [navigation, otherUserName, TaskId])
+		navigation.setOptions({
+			title: chatTitle ? `${chatTitle}` : 'Chat',
+			headerLeft: () => (
+				<TouchableOpacity
+					onPress={() => router.push('/messages')}
+					style={styles.backButton}
+				>
+					<Ionicons name='arrow-back' size={24} color={COLORS.textPrimary} />
+				</TouchableOpacity>
+			),
+		})
+	}, [navigation, chatTitle, router])
 
 	useEffect(() => {
 		if (isChatReady) {
@@ -141,15 +140,15 @@ export default function ChatDetailScreen() {
 		const messageToSend = inputText.trim()
 		setInputText('')
 
-		sendMessage({ message: messageToSend })
+		sendMessage({ text: messageToSend })
 	}
 
 	const renderMessage = ({ item }: { item: Message }) => {
 		const messageItem = {
 			...item,
+			message: item.text,
 			createdAt: item.createdAt ? new Date(item.createdAt) : undefined,
 		}
-		// 'userId' is now correctly passed
 		return <MessageBubble item={messageItem} currentUserId={userId} />
 	}
 
@@ -171,7 +170,6 @@ export default function ChatDetailScreen() {
 		)
 	}
 
-	// This check now works correctly
 	if (!isChatReady) {
 		return (
 			<View style={styles.loadingContainer}>
@@ -179,9 +177,8 @@ export default function ChatDetailScreen() {
 					Chat is not configured correctly. Missing IDs.
 				</Text>
 				<Text style={styles.debugText}>UserId: {userId || 'null'}</Text>
-				<Text style={styles.debugText}>TaskId: {TaskId || 'null'}</Text>
 				<Text style={styles.debugText}>
-					OtherUserId: {otherUserId || 'null'}
+					ChatId (from TaskId): {chatId || 'null'}
 				</Text>
 			</View>
 		)
@@ -201,7 +198,6 @@ export default function ChatDetailScreen() {
 				style={styles.messagesList}
 				contentContainerStyle={{
 					paddingVertical: 10,
-					flexDirection: 'column-reverse',
 				}}
 			/>
 			<View style={styles.inputContainer}>
@@ -233,6 +229,10 @@ export default function ChatDetailScreen() {
 }
 
 const styles = StyleSheet.create({
+	backButton: {
+		marginLeft: 10,
+		padding: 5,
+	},
 	container: {
 		flex: 1,
 		backgroundColor: COLORS.background,

@@ -6,13 +6,9 @@ import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native'
 import EmployerTaskView from '../../components/modules/EmployerTaskView'
 import WorkerTaskView from '../../components/modules/WorkerTaskView'
 import { COLORS } from '../../constants/colors'
-// ФІКС 1: Переконуємось, що імпортуємо правильний хук
 import { useAuth } from '../../hooks/useAuthContext'
 import { api } from '../../src/api/client'
 import { CreateTaskParams, Task } from '../../types/task.types'
-
-// ФІКС 2: Видалено зайві локальні інтерфейси 'Profile' та 'AuthHookValue'
-// Ці типи тепер мають надходити безпосередньо з 'useAuthContext'
 
 interface BidSubmitData {
 	taskCreatorId: string
@@ -21,12 +17,9 @@ interface BidSubmitData {
 }
 
 export default function MyTasksScreen() {
-	// ФІКС 3: Отримуємо 'user' замість 'userId'
 	const { user, profile, loading: authLoading } = useAuth()
 	const queryClient = useQueryClient()
 
-	// ФІКС 4: Витягуємо 'userId' з об'єкта 'user'
-	// (Якщо у вас поле називається 'id', змініть 'user?.uid' на 'user?.id')
 	const userId = user?.uid
 
 	const [modalVisible, setModalVisible] = useState(false)
@@ -40,16 +33,14 @@ export default function MyTasksScreen() {
 		isLoading: tasksLoading,
 		error: tasksError,
 	} = useQuery<Task[], AxiosError>({
-		// ФІКС 5: queryKey та enabled тепер працюють, бо 'userId' коректний
 		queryKey: ['tasks', userId],
 		queryFn: async () => {
 			const { data } = await api.get('/tasks')
 			return data
 		},
-		enabled: !!userId, // Запит не спрацює, поки 'userId' не буде доступний
+		enabled: !!userId,
 	})
 
-	// --- Мутації (без змін) ---
 	const { mutateAsync: createTaskMutate } = useMutation<
 		void,
 		AxiosError,
@@ -103,7 +94,6 @@ export default function MyTasksScreen() {
 		},
 	})
 
-	// --- Хендлери (без змін, але тепер 'userId' коректний) ---
 	const handleCreateTask = async (taskData: CreateTaskParams) => {
 		try {
 			await createTaskMutate(taskData)
@@ -139,7 +129,6 @@ export default function MyTasksScreen() {
 	}
 
 	const handleBidSubmission = async (bidData: BidSubmitData) => {
-		// Ця перевірка тепер працює
 		if (!userId) {
 			Alert.alert('Error', 'You must be logged in.')
 			return
@@ -163,7 +152,6 @@ export default function MyTasksScreen() {
 		}
 	}
 
-	// --- Логіка рендерингу ---
 	const isLoading = authLoading || tasksLoading
 
 	if (isLoading) {
@@ -184,8 +172,6 @@ export default function MyTasksScreen() {
 		)
 	}
 
-	// ФІКС 6: Додаткова перевірка (guard clause).
-	// Гарантує, що 'userId' не 'null' у коді нижче.
 	if (!userId || !user) {
 		return (
 			<View style={styles.centered}>
@@ -196,8 +182,6 @@ export default function MyTasksScreen() {
 		)
 	}
 
-	// ФІКС 7: Прибрано 'as string', оскільки TypeScript
-	// тепер знає, що 'userId' - це 'string' завдяки перевірці вище.
 	return isWorker ? (
 		<WorkerTaskView
 			userId={userId}

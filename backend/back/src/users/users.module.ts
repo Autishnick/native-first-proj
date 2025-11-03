@@ -1,4 +1,3 @@
-// Always write all code in English, including text in the code.
 import { Module } from '@nestjs/common';
 import { FireStoreModule } from 'src/common/database/firestore.module';
 import { ProfileController } from './users.controller';

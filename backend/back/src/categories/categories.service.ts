@@ -1,4 +1,3 @@
-// Per your request, all code and comments are in English.
 import { Injectable } from '@nestjs/common';
 import { Category } from './categories.entity';
 
@@ -18,16 +17,14 @@ export class CategoriesService {
   private readonly categories: Category[];
 
   constructor() {
-    // Convert the raw data into the Category[] type by adding IDs
     this.categories = CATEGORIES_DATA.map((category, index) => ({
-      id: String(index + 1), // Create a unique ID (e.g., "1", "2", ...)
+      id: String(index + 1),
       name: category.name,
       icon: category.icon,
     }));
   }
 
   findAll(): Category[] {
-    // Return the full list with IDs
     return this.categories;
   }
 }

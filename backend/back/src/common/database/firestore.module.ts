@@ -1,8 +1,7 @@
-// Per your request, all code and comments are in English.
-import { Global, Module } from '@nestjs/common'; // 1. Import Global
+import { Global, Module } from '@nestjs/common';
 import { FireStoreService } from './firestore.service';
 
-@Global() // 2. Add this decorator
+@Global()
 @Module({
   providers: [FireStoreService],
   exports: [FireStoreService],

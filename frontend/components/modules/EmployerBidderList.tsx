@@ -34,7 +34,6 @@ const useTaskBidders = (
 		const fetchBids = async () => {
 			setLoading(true)
 			try {
-				// Тепер можна використовувати всі 3 where, бо індекс готовий
 				const q = query(
 					collection(db, 'notifications'),
 					where('recipientId', '==', userId),
